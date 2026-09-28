@@ -1,6 +1,14 @@
 import type { SeriesBlueprint, StudioFeature } from "@/lib/series/types";
 import styles from "../SeriesStudio.module.css";
 
+function humanizeFeatureType(type: StudioFeature["type"]) {
+  return type
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 export function ReadyFeaturePanel({
   feature,
   label,
@@ -13,13 +21,15 @@ export function ReadyFeaturePanel({
   description?: string;
   onOpen?: (type: StudioFeature["type"]) => void;
 }) {
+  const displayLabel = label ?? humanizeFeatureType(feature.type);
+
   return (
     <article className={styles.featurePanel}>
       <span className={styles.featureStatus}>Ready to develop</span>
-      <h3>{label ?? feature.type.replaceAll("_", " ")}</h3>
+      <h3>{displayLabel}</h3>
       <p>{description ?? feature.reason}</p>
       <button className={styles.compactButton} type="button" onClick={() => onOpen?.(feature.type)}>
-        Open {label ?? "tool"}
+        Open {displayLabel}
       </button>
     </article>
   );
