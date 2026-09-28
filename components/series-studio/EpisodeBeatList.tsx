@@ -1,3 +1,4 @@
+import type { SceneSummary } from "@/lib/scenes/types";
 import type { SeriesBlueprint } from "@/lib/series/types";
 import { selectCastByIds, selectLocation } from "./selectors";
 import styles from "./SeriesStudio.module.css";
@@ -16,24 +17,26 @@ const BEAT_LABELS: Record<SeriesBlueprint["episodeOne"]["beats"][number]["type"]
 
 export function EpisodeBeatList({
   blueprint,
-  completedBeatIds,
+  sceneSummaries,
   expandedBeatId,
   onToggleBeat,
   onDevelopScene
 }: {
   blueprint: SeriesBlueprint;
-  completedBeatIds: ReadonlySet<string>;
+  sceneSummaries: SceneSummary[];
   expandedBeatId: string | null;
   onToggleBeat: (beatId: string) => void;
-  onDevelopScene?: (beatId: string) => void;
+  onDevelopScene?: (beatId: string) => void | Promise<void>;
 }) {
+  const sceneByBeat = new Map(sceneSummaries.map((scene) => [scene.sourceBeatId, scene]));
+
   return (
     <ol className={styles.beatList}>
       {blueprint.episodeOne.beats.map((beat, index) => {
         const cast = selectCastByIds(blueprint, beat.involvedCharacterIds);
         const location = selectLocation(blueprint, beat.locationId);
         const expanded = expandedBeatId === beat.id;
-        const complete = completedBeatIds.has(beat.id);
+        const scene = sceneByBeat.get(beat.id);
 
         return (
           <li className={styles.beatItem} key={beat.id}>
@@ -43,11 +46,13 @@ export function EpisodeBeatList({
               aria-expanded={expanded}
               onClick={() => onToggleBeat(beat.id)}
             >
-              <span className={complete ? styles.beatStatusComplete : styles.beatStatus}>
-                {complete ? "✓" : String(index + 1).padStart(2, "0")}
+              <span className={scene ? styles.beatStatusComplete : styles.beatStatus}>
+                {scene ? "•" : String(index + 1).padStart(2, "0")}
               </span>
               <span className={styles.beatSummaryCopy}>
-                <span className={styles.beatType}>{BEAT_LABELS[beat.type]}</span>
+                <span className={styles.beatType}>
+                  {BEAT_LABELS[beat.type]}{scene ? " · planned" : ""}
+                </span>
                 <strong>{beat.summary}</strong>
               </span>
               <span aria-hidden="true" className={styles.chevron}>
@@ -65,15 +70,13 @@ export function EpisodeBeatList({
                   <span>What changes</span>
                   <p>{beat.storyChange}</p>
                 </div>
-                {!complete ? (
-                  <button
-                    className={styles.compactButton}
-                    type="button"
-                    onClick={() => onDevelopScene?.(beat.id)}
-                  >
-                    Develop Scene
-                  </button>
-                ) : null}
+                <button
+                  className={styles.compactButton}
+                  type="button"
+                  onClick={() => void onDevelopScene?.(beat.id)}
+                >
+                  {scene ? "Continue Scene" : "Develop Scene"}
+                </button>
               </div>
             ) : null}
           </li>
