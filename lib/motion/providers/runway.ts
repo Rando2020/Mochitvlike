@@ -57,8 +57,9 @@ export class RunwayMotionVideoProvider implements MotionVideoProvider{
       if(!response.ok)throw new VideoProviderMalformedResponseError();
       const body=await safeJson(response);
       if(!body||typeof body.id!=="string")throw new VideoProviderMalformedResponseError();
-      taskId=body.id;
-      if(input.onTaskCreated)await input.onTaskCreated(taskId);
+      const createdTaskId=body.id as string;
+      taskId=createdTaskId;
+      if(input.onTaskCreated)await input.onTaskCreated(createdTaskId);
     }
 
     const durableTaskId=taskId;
