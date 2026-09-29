@@ -7,6 +7,7 @@ import {getScript} from "@/lib/scripts/persistence/getScript";
 import {getVisualPlan} from "@/lib/visual-planning/persistence/getVisualPlan";
 import {getStoryboard,getPanelStates,materializeStoryboard} from "@/lib/storyboards/persistence";
 import {getAnimatic} from "@/lib/animatics/persistence";
+import {getLatestMotionPlan} from "@/lib/motion/persistence";
 
 export default async function AnimaticPage({params}:{params:Promise<{seriesId:string;sceneId:string;scriptId:string;planId:string;storyboardId:string;animaticId:string}>}){
   const {seriesId,sceneId,scriptId,planId,storyboardId,animaticId}=await params;
@@ -21,6 +22,8 @@ export default async function AnimaticPage({params}:{params:Promise<{seriesId:st
     const storyboard=materializeStoryboard(storyboardRow.blueprint,await getPanelStates(supabase,user.id,storyboardId));
     const animatic=await getAnimatic(supabase,user.id,animaticId,script.script,visualPlan.plan,storyboard);
     if(animatic.storyboardId!==storyboardId)notFound();
-    return <AnimaticWorkspace timeline={animatic.timeline} series={series.blueprint}/>;
+    const latestMotionPlan=await getLatestMotionPlan(supabase,user.id,animaticId);
+    const motionBase="/api/series/"+seriesId+"/scenes/"+sceneId+"/scripts/"+scriptId+"/visual-plans/"+planId+"/storyboards/"+storyboardId+"/animatics/"+animaticId;
+    return <AnimaticWorkspace timeline={animatic.timeline} series={series.blueprint} motionBase={motionBase} latestMotionPlan={latestMotionPlan?{id:latestMotionPlan.id}:null}/>;
   }catch{notFound();}
 }

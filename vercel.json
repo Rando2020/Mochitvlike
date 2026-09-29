@@ -1,1 +1,1 @@
-{"crons":[{"path":"/api/internal/storyboard-jobs/process","schedule":"* * * * *"}]}
+{"crons":[{"path":"/api/internal/storyboard-jobs/process","schedule":"* * * * *"},{"path":"/api/internal/motion-jobs/process","schedule":"* * * * *"}]}
