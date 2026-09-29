@@ -1,5 +1,5 @@
 import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
-vi.mock("../storage",()=>({uploadDialogueAudio:vi.fn(),removeDialogueAudio:vi.fn()}));
+vi.mock("../storage",async(importOriginal)=>{const actual=await importOriginal<typeof import("../storage")>();return{...actual,uploadDialogueAudio:vi.fn(),removeDialogueAudio:vi.fn()};});
 import {uploadDialogueAudio,removeDialogueAudio} from "../storage";
 import {processDialogueAudioJob} from "../jobs/processDialogueAudioJob";
 import {buildValidDialogue} from "./fixtures";
