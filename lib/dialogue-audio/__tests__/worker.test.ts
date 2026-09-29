@@ -9,7 +9,7 @@ import {TTSProviderRefusalError,TTSProviderTimeoutError} from "../providers/erro
 
 const f=buildValidDialogue(),line=f.plan.lines[0],spec=buildDialogueAudioSpec(f.plan,f.voiceCast,line.id),compiled=compileSpeechInstructions(spec);
 const audio={bytes:new Uint8Array(2048),mimeType:"audio/wav" as const,durationSeconds:Math.max(.8,line.visualWindowSeconds),sampleRate:24000,channels:1,provider:"test",model:"test"};
-const provider={name:"test",model:"test",generate:vi.fn(async()=>audio)};
+const provider={name:"openai",model:"gpt-4o-mini-tts",generate:vi.fn(async()=>audio)};
 
 function fakeSupabase(opts:{status?:string;claim?:string;textChecksum?:string;scriptText?:string;complete?:boolean;renew?:boolean}={}){
  let status=opts.status??"GENERATING";
