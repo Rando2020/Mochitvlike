@@ -1,3 +1,4 @@
+import type { SceneSummary } from "@/lib/scenes/types";
 import type { SeriesBlueprint } from "@/lib/series/types";
 import { episodeProgress } from "./selectors";
 import { EpisodeBeatList } from "./EpisodeBeatList";
@@ -5,18 +6,18 @@ import styles from "./SeriesStudio.module.css";
 
 export function EpisodeHero({
   blueprint,
-  completedBeatIds,
+  sceneSummaries,
   expandedBeatId,
   onToggleBeat,
   onDevelopScene
 }: {
   blueprint: SeriesBlueprint;
-  completedBeatIds: ReadonlySet<string>;
+  sceneSummaries: SceneSummary[];
   expandedBeatId: string | null;
   onToggleBeat: (beatId: string) => void;
-  onDevelopScene?: (beatId: string) => void;
+  onDevelopScene?: (beatId: string) => void | Promise<void>;
 }) {
-  const progress = episodeProgress(blueprint.episodeOne.beats.length, completedBeatIds.size);
+  const progress = episodeProgress(blueprint.episodeOne.beats.length, sceneSummaries.length);
 
   return (
     <section className={styles.episodeHero} aria-labelledby="episode-one-heading">
@@ -26,7 +27,7 @@ export function EpisodeHero({
           <h2 id="episode-one-heading">{blueprint.episodeOne.title}</h2>
           <p>{blueprint.episodeOne.purpose}</p>
         </div>
-        <div className={styles.progressBadge} aria-label={progress + "% developed"}>
+        <div className={styles.progressBadge} aria-label={progress + "% planned"}>
           {progress}%
         </div>
       </div>
@@ -39,7 +40,7 @@ export function EpisodeHero({
       </div>
       <EpisodeBeatList
         blueprint={blueprint}
-        completedBeatIds={completedBeatIds}
+        sceneSummaries={sceneSummaries}
         expandedBeatId={expandedBeatId}
         onToggleBeat={onToggleBeat}
         onDevelopScene={onDevelopScene}
