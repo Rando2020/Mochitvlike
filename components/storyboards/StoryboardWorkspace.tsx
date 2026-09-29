@@ -1,16 +1,21 @@
 "use client";
 import {useEffect,useState} from "react";
+import {useRouter} from "next/navigation";
 import type {SceneScript} from "@/lib/scripts/types";
 import type {SeriesBlueprint} from "@/lib/series/types";
 import type {StoryboardBlueprint,StoryboardStatus} from "@/lib/storyboards/types";
 import styles from "./StoryboardWorkspace.module.css";
 
-export function StoryboardWorkspace({initialStoryboard,initialStatus,statusEndpoint,retryBase,script,series}:{
+export function StoryboardWorkspace({initialStoryboard,initialStatus,statusEndpoint,retryBase,script,series,latestAnimatic}:{
  initialStoryboard:StoryboardBlueprint;initialStatus:StoryboardStatus;statusEndpoint:string;retryBase:string;script:SceneScript;series:SeriesBlueprint;
+ latestAnimatic?:{id:string}|null;
 }){
+ const router=useRouter();
  const [storyboard,setStoryboard]=useState(initialStoryboard);
  const [status,setStatus]=useState<StoryboardStatus>(initialStatus);
  const [retrying,setRetrying]=useState<string|null>(null);
+ const [animaticBusy,setAnimaticBusy]=useState(false);
+ const [animaticError,setAnimaticError]=useState<string|null>(null);
  const cast=new Map(series.cast.map(c=>[c.id,c.name]));
  const blocks=new Map(script.blocks.map(b=>[b.id,b]));
  const terminal=status==="READY"||status==="PARTIAL"||status==="FAILED"||status==="ARCHIVED";
@@ -22,9 +27,7 @@ export function StoryboardWorkspace({initialStoryboard,initialStatus,statusEndpo
    if(document.visibilityState==="hidden"){timer=window.setTimeout(poll,3000);return;}
    const response=await fetch(statusEndpoint,{cache:"no-store"});
    if(response.ok&&!cancelled){
-    const body=await response.json();
-    const remote=body.storyboard;
-    setStatus(remote.status);
+    const body=await response.json();const remote=body.storyboard;setStatus(remote.status);
     setStoryboard(current=>({...current,panels:current.panels.map(panel=>{
      const next=remote.panels.find((p:{id:string})=>p.id===panel.id);
      return next?{...panel,generationStatus:next.generationStatus,asset:next.asset}:panel;
@@ -47,18 +50,27 @@ export function StoryboardWorkspace({initialStoryboard,initialStatus,statusEndpo
   setRetrying(panelId);
   try{
    const response=await fetch(`${retryBase}/panels/${panelId}/retry`,{method:"POST"});
-   if(response.ok){
-    setStoryboard(current=>({...current,panels:current.panels.map(p=>p.id===panelId?{...p,generationStatus:"PENDING",asset:null}:p)}));
-    setStatus("GENERATING");
-   }
+   if(response.ok){setStoryboard(current=>({...current,panels:current.panels.map(p=>p.id===panelId?{...p,generationStatus:"PENDING",asset:null}:p)}));setStatus("GENERATING");}
   }finally{setRetrying(null);}
+ };
+
+ const continueToAnimatic=async()=>{
+  const publicBase=retryBase.replace("/api/series","/series");
+  if(latestAnimatic){router.push(`${publicBase}/animatics/${latestAnimatic.id}`);return;}
+  setAnimaticBusy(true);setAnimaticError(null);
+  try{
+   const response=await fetch(`${retryBase}/animatics/generate`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"INITIAL"})});
+   if(!response.ok){const body=await response.json().catch(()=>null);setAnimaticError(body?.error?.code??"ANIMATIC_GENERATION_FAILED");return;}
+   const body=await response.json();router.push(`${publicBase}/animatics/${body.animatic.id}`);
+  }finally{setAnimaticBusy(false);}
  };
 
  return <main className={styles.root}>
   <header className={styles.hero}>
    <div><span className={styles.eyebrow}>Storyboard</span><h1>{storyboard.identity.title}</h1><p>{label} · {completed}/{storyboard.panels.length} panels</p></div>
-   <button className={styles.primary} disabled>Continue to Animatic</button>
+   <button className={styles.primary} disabled={animaticBusy||!(status==="READY"||status==="PARTIAL")} onClick={()=>void continueToAnimatic()}>{animaticBusy?"Building animatic…":latestAnimatic?"Open Animatic":"Continue to Animatic"}</button>
   </header>
+  {animaticError?<p role="alert">{animaticError==="ANIMATIC_STORYBOARD_INCOMPLETE"?"Finish the missing storyboard moments before building the animatic.":"The animatic could not be assembled safely yet."}</p>:null}
   <div className={styles.progress}><div style={{width:`${progress}%`}}/><span>{progress}% ready</span></div>
   <section className={styles.grid}>
    {[...storyboard.panels].sort((a,b)=>a.sequenceIndex-b.sequenceIndex).map(panel=><article key={panel.id} className={styles.card}>
