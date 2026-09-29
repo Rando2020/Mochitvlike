@@ -1,16 +1,20 @@
 "use client";
 import {useEffect,useMemo,useRef,useState} from "react";
+import {useRouter} from "next/navigation";
 import type {MotionPlan,MotionPlanStatus} from "@/lib/motion/types";
 import styles from "./MotionWorkspace.module.css";
 
-export function MotionWorkspace({initialPlan,initialStatus,statusEndpoint,retryBase}:{
-  initialPlan:MotionPlan;initialStatus:MotionPlanStatus;statusEndpoint:string;retryBase:string;
+export function MotionWorkspace({initialPlan,initialStatus,statusEndpoint,retryBase,assemblyBase,latestAssembly}:{
+  initialPlan:MotionPlan;initialStatus:MotionPlanStatus;statusEndpoint:string;retryBase:string;assemblyBase:string;latestAssembly?:{id:string}|null;
 }){
+  const router=useRouter();
   const [plan,setPlan]=useState(initialPlan);
   const [status,setStatus]=useState<MotionPlanStatus>(initialStatus);
   const [retrying,setRetrying]=useState<string|null>(null);
   const [activeIndex,setActiveIndex]=useState(0);
   const [playing,setPlaying]=useState(false);
+  const [assemblyBusy,setAssemblyBusy]=useState(false);
+  const [assemblyError,setAssemblyError]=useState<string|null>(null);
   const stillTimer=useRef<number|undefined>(undefined);
   const terminal=status==="READY"||status==="PARTIAL"||status==="FAILED"||status==="ARCHIVED";
 
@@ -67,11 +71,26 @@ export function MotionWorkspace({initialPlan,initialStatus,statusEndpoint,retryB
     }finally{setRetrying(null);}
   };
 
+  const assembleEpisode=async()=>{
+    const publicBase=assemblyBase.replace("/api/series","/series");
+    if(latestAssembly){router.push(publicBase+"/assemblies/"+latestAssembly.id);return;}
+    setAssemblyBusy(true);setAssemblyError(null);
+    try{
+      const response=await fetch(assemblyBase+"/assemblies/generate",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({mode:"INITIAL",motionPlanIds:[plan.id]})
+      });
+      if(!response.ok){const body=await response.json().catch(()=>null);setAssemblyError(body?.error?.code??"EPISODE_ASSEMBLY_FAILED");return;}
+      const body=await response.json();router.push(publicBase+"/assemblies/"+body.episodeAssembly.id);
+    }finally{setAssemblyBusy(false);}
+  };
+
   return <main className={styles.root}>
     <header className={styles.hero}>
       <div><span className={styles.eyebrow}>Motion</span><h1>{plan.identity.title}</h1><p>{resolved}/{plan.clips.length} clips resolved · {progress}%</p></div>
-      <button className={styles.primary} disabled>Assemble Episode</button>
+      <button className={styles.primary} disabled={assemblyBusy||status!=="READY"} onClick={()=>void assembleEpisode()}>{assemblyBusy?"Assembling…":latestAssembly?"Open Episode Assembly":"Assemble Episode"}</button>
     </header>
+    {assemblyError?<p role="alert">{assemblyError==="EPISODE_MOTION_INCOMPLETE"?"Finish every motion clip before assembling the episode.":"The episode could not be assembled safely yet."}</p>:null}
 
     <div className={styles.progress}><div style={{width:progress+"%"}}/><span>{progress}% ready</span></div>
 
