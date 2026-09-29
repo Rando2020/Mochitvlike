@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { ScriptWorkspace } from "@/components/scripts/ScriptWorkspace";
+import { getLatestVisualPlan } from "@/lib/visual-planning/persistence/getVisualPlan";
 import { getScript } from "@/lib/scripts/persistence/getScript";
 import { listScripts } from "@/lib/scripts/persistence/listScripts";
 import { ScriptPersistenceError } from "@/lib/scripts/persistence/types";
@@ -17,7 +18,6 @@ export default async function ScriptPage({
   const { seriesId, sceneId, scriptId } = await params;
   const supabase = await createServerSupabaseClient();
   const { data: { user }, error } = await supabase.auth.getUser();
-
   if (error || !user) notFound();
 
   try {
@@ -28,14 +28,31 @@ export default async function ScriptPage({
       listScripts(supabase, user.id, seriesId, sceneId)
     ]);
 
-    return <ScriptWorkspace script={script.script} versions={versions} series={series.blueprint} />;
+    const latestVisualPlan = await getLatestVisualPlan(
+      supabase, user.id, seriesId, sceneId, scriptId, series.blueprint, scene.blueprint, script.script
+    );
+
+    return (
+      <ScriptWorkspace
+        script={script.script}
+        versions={versions}
+        series={series.blueprint}
+        latestVisualPlan={latestVisualPlan ? {
+          id: latestVisualPlan.id,
+          version: latestVisualPlan.version,
+          status: latestVisualPlan.status,
+          visualBeatCount: latestVisualPlan.plan.visualBeats.length,
+          estimatedDurationSeconds: latestVisualPlan.plan.visualBeats.reduce((sum, beat) => sum + beat.estimatedDurationSeconds, 0),
+          updatedAt: latestVisualPlan.updatedAt
+        } : null}
+      />
+    );
   } catch (caught) {
     if (
       (caught instanceof ScriptPersistenceError && caught.code === "SCRIPT_NOT_FOUND") ||
       (caught instanceof ScenePersistenceError && caught.code === "SCENE_NOT_FOUND") ||
       (caught instanceof SeriesPersistenceError && caught.code === "SERIES_NOT_FOUND")
     ) notFound();
-
     throw caught;
   }
 }
