@@ -46,13 +46,13 @@ create policy "episode_assemblies_select_own" on public.episode_assemblies for s
 create policy "episode_assembly_scenes_select_own" on public.episode_assembly_scenes for select to authenticated using (
   exists(
     select 1 from public.episode_assemblies ea
-    join public.motion_plans mp on mp.id=motion_plan_id
-    where ea.id=episode_assembly_id
+    join public.motion_plans mp on mp.id=episode_assembly_scenes.motion_plan_id
+    where ea.id=episode_assembly_scenes.episode_assembly_id
       and ea.creator_id=(select auth.uid())
       and mp.creator_id=(select auth.uid())
       and mp.series_id=ea.series_id
-      and mp.scene_id=scene_id
-      and mp.animatic_id=animatic_id
+      and mp.scene_id=episode_assembly_scenes.scene_id
+      and mp.animatic_id=episode_assembly_scenes.animatic_id
   )
 );
 
@@ -75,6 +75,13 @@ begin
   where mp.creator_id=p_creator_id and mp.series_id=p_series_id and mp.scene_id=x.scene_id and mp.animatic_id=x.animatic_id and mp.status='READY';
 
   if v_count<>jsonb_array_length(p_scenes) then raise exception 'EPISODE_MOTION_INCOMPLETE'; end if;
+
+  if (
+    select count(distinct x.scene_order)<>jsonb_array_length(p_scenes)
+      or min(x.scene_order)<>0
+      or max(x.scene_order)<>jsonb_array_length(p_scenes)-1
+    from jsonb_to_recordset(p_scenes) as x(scene_order integer)
+  ) then raise exception 'EPISODE_SCENE_ORDER_INVALID'; end if;
 
   begin
     insert into public.episode_assemblies(id,series_id,episode_key,creator_id,version,status,timeline)

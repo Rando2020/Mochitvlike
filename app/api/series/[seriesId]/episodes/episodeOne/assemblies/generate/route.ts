@@ -30,14 +30,20 @@ export async function POST(request:NextRequest,{params}:{params:Promise<{seriesI
 
   try{
     const series=await getSeries(supabase,user.id,seriesId);
+    const requestedMotionRows=[];
+    for(const motionPlanId of parsed.data.motionPlanIds){
+      const motionRow=await getMotionPlan(supabase,user.id,motionPlanId);
+      if(motionRow.series_id!==seriesId)return fail(404,"EPISODE_MOTION_PLAN_NOT_FOUND");
+      if(motionRow.status!=="READY")return fail(409,"EPISODE_MOTION_INCOMPLETE");
+      requestedMotionRows.push(motionRow);
+    }
+
     const existing=await getLatestEpisodeAssembly(supabase,user.id,seriesId,"episodeOne");
     if(existing)return NextResponse.json({episodeAssembly:{id:existing.id,status:existing.status,version:existing.version,timeline:existing.timeline,preview:existing.preview}},{status:200});
 
     const bundles:EpisodeAssemblySceneInput[]=[];
-    for(const [order,motionPlanId] of parsed.data.motionPlanIds.entries()){
-      const motionRow=await getMotionPlan(supabase,user.id,motionPlanId);
-      if(motionRow.series_id!==seriesId)return fail(404,"EPISODE_MOTION_PLAN_NOT_FOUND");
-      if(motionRow.status!=="READY")return fail(409,"EPISODE_MOTION_INCOMPLETE");
+    for(const [order,motionRow] of requestedMotionRows.entries()){
+      const motionPlanId=motionRow.id;
       const motionPlan=materializeMotionPlan(motionRow.plan,await getMotionClipStates(supabase,user.id,motionPlanId));
       if(motionPlan.clips.some(c=>c.generationStatus!=="COMPLETED"&&c.generationStatus!=="SKIPPED"))return fail(409,"EPISODE_MOTION_INCOMPLETE");
 
