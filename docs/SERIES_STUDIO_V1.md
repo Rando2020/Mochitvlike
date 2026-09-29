@@ -6,13 +6,15 @@ The Series Studio is the first frontend consumer of the validated `SeriesBluepri
 
 The UI treats the blueprint as authoritative series data. It does not expose JSON, prompt terminology, model configuration, or `characterSheetSeed` in the normal creator experience.
 
-## Current route
+## Route
 
 `/series/[seriesId]`
 
-Because this repository started empty and does not yet contain persistence for generated SeriesBlueprints, `/series/demo` uses `lib/series/demoBlueprint.ts` as a temporary data adapter.
+The production route now resolves an authenticated UUID-backed series through the persistence layer, revalidates its stored blueprint, and passes that validated object into `SeriesStudio`.
 
-Replace that adapter when series persistence/read APIs land. The `SeriesStudio` component itself already accepts a validated `SeriesBlueprint` and does not depend on the demo fixture.
+`/series/demo` remains an explicit development-only fixture. Production series never silently fall back to demo data.
+
+See `docs/SERIES_PERSISTENCE.md` for the durable storage and authorization contract.
 
 ## Product hierarchy
 
@@ -31,6 +33,6 @@ Replace that adapter when series persistence/read APIs land. The `SeriesStudio` 
 
 ## Next integration seam
 
-The next backend/data task should provide a durable way to resolve a `seriesId` into a validated `SeriesBlueprint`.
+The next product capability should add durable Episode/Scene development state around the persisted series.
 
-After that, the next product capability should be Episode/Scene development state, not video rendering.
+Do not jump directly to video rendering. Scene development should establish purpose, cast, location, dialogue/action intent, ending state, and explicit canon changes first.

@@ -1,0 +1,20 @@
+import {describe,expect,it} from "vitest";
+import {theWoundsWeKeep} from "@/lib/series/demoBlueprint";
+import {buildValidScene} from "@/lib/scenes/__tests__/fixtures";
+import {buildValidScript} from "@/lib/scripts/__tests__/fixtures";
+import {buildValidVisualPlan} from "@/lib/visual-planning/__tests__/fixtures";
+import {compileStoryboardBlueprint} from "../compileStoryboardBlueprint";
+import {buildStoryboardPanelPrompt} from "../images/buildStoryboardPanelPrompt";
+const c=compileStoryboardBlueprint({storyboardId:"66666666-6666-4666-8666-666666666666",seriesId:"22222222-2222-4222-8222-222222222222",sceneId:"11111111-1111-4111-8111-111111111111",scriptId:"33333333-3333-4333-8333-333333333333",visualPlanId:"55555555-5555-4555-8555-555555555555",version:1,series:theWoundsWeKeep,scene:buildValidScene(),script:buildValidScript(),visualPlan:buildValidVisualPlan()});
+describe("buildStoryboardPanelPrompt",()=>{
+ it("is deterministic",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).prompt).toBe(buildStoryboardPanelPrompt(c.specs[0]).prompt));
+ it("has deterministic checksum",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).promptChecksum).toBe(buildStoryboardPanelPrompt(c.specs[0]).promptChecksum));
+ it("style change changes checksum",()=>{const x=structuredClone(c.specs[0]);x.creativeDirection.colorLanguage+=" neon";expect(buildStoryboardPanelPrompt(x).promptChecksum).not.toBe(buildStoryboardPanelPrompt(c.specs[0]).promptChecksum);});
+ it("blocks text and watermarks",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).negativeConstraints.join(" ")).toMatch(/text.*watermark/i));
+ it("blocks extra characters",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).negativeConstraints.join(" ")).toMatch(/extra people/i));
+ it("blocks costume drift",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).negativeConstraints.join(" ")).toMatch(/costume/i));
+ it("distinguishes storyboard from marketing art",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).prompt).toMatch(/storyboard.*marketing/i));
+ it("contains no runtime system prompt field",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).prompt).not.toContain("system_prompt"));
+ it("contains no avatar prompt field",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).prompt).not.toContain("avatarPrompt"));
+ it("contains no provider credential",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).prompt).not.toContain("OPENAI_API_KEY"));
+});

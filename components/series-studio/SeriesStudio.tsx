@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { SceneSummary } from "@/lib/scenes/types";
 import type { CastMember, SeriesBlueprint, StudioFeatureType } from "@/lib/series/types";
 import { CanonPanel } from "./CanonPanel";
 import { CastDetailSheet } from "./CastDetailSheet";
@@ -28,7 +30,8 @@ const NAV_ITEMS: Array<{ id: StudioTab; label: string; icon: string }> = [
 export type SeriesStudioProps = {
   blueprint: SeriesBlueprint;
   seriesId: string;
-  onDevelopScene?: (beatId: string) => void;
+  sceneSummaries?: SceneSummary[];
+  onDevelopScene?: (beatId: string) => void | Promise<void>;
   onOpenFeature?: (type: StudioFeatureType) => void;
   onClarificationAnswer?: (questionId: string, choice: ClarificationChoice) => void;
 };
@@ -52,17 +55,23 @@ function SeasonSnapshot({ blueprint }: { blueprint: SeriesBlueprint }) {
 export function SeriesStudio({
   blueprint,
   seriesId,
+  sceneSummaries = [],
   onDevelopScene,
   onOpenFeature,
   onClarificationAnswer
 }: SeriesStudioProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<StudioTab>("studio");
   const [selectedCast, setSelectedCast] = useState<CastMember | null>(null);
   const [expandedBeatId, setExpandedBeatId] = useState<string | null>(blueprint.episodeOne.beats[0]?.id ?? null);
-  const [completedBeatIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [sceneError, setSceneError] = useState<string | null>(null);
 
   const primaryFeatures = useMemo(() => selectPrimaryFeatures(blueprint), [blueprint]);
   const secondaryFeatures = useMemo(() => selectSecondaryFeatures(blueprint), [blueprint]);
+  const sceneByBeat = useMemo(
+    () => new Map(sceneSummaries.map((scene) => [scene.sourceBeatId, scene])),
+    [sceneSummaries]
+  );
 
   const goToEpisode = () => {
     setActiveTab("episode");
@@ -78,12 +87,62 @@ export function SeriesStudio({
     setExpandedBeatId((current) => current === beatId ? null : beatId);
   };
 
+  const handleScene = async (beatId: string) => {
+    if (onDevelopScene) {
+      await onDevelopScene(beatId);
+      return;
+    }
+
+    const existing = sceneByBeat.get(beatId);
+    if (existing) {
+      router.push(`/series/${seriesId}/scenes/${existing.id}`);
+      return;
+    }
+
+    setSceneError(null);
+
+    const response = await fetch(`/api/series/${seriesId}/scenes/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        episodeKey: "episodeOne",
+        beatId
+      })
+    });
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      setSceneError(body?.error?.code ?? "SCENE_GENERATION_FAILED");
+      return;
+    }
+
+    const body = await response.json() as { scene: { id: string } };
+    router.push(`/series/${seriesId}/scenes/${body.scene.id}`);
+  };
+
   const header = (
     <SeriesHeader
       blueprint={blueprint}
       onContinueEpisode={goToEpisode}
       onOpenBible={goToBible}
     />
+  );
+
+  const episodeHero = (
+    <>
+      {sceneError ? (
+        <div className={styles.contextualEmpty} role="alert">
+          This scene could not be developed safely yet. Try again when the story context is available.
+        </div>
+      ) : null}
+      <EpisodeHero
+        blueprint={blueprint}
+        sceneSummaries={sceneSummaries}
+        expandedBeatId={expandedBeatId}
+        onToggleBeat={toggleBeat}
+        onDevelopScene={handleScene}
+      />
+    </>
   );
 
   return (
@@ -114,44 +173,23 @@ export function SeriesStudio({
               <ClarificationCard blueprint={blueprint} onAnswer={onClarificationAnswer} />
               <div className={styles.dashboardGrid}>
                 <div className={styles.dashboardPrimary}>
-                  <EpisodeHero
-                    blueprint={blueprint}
-                    completedBeatIds={completedBeatIds}
-                    expandedBeatId={expandedBeatId}
-                    onToggleBeat={toggleBeat}
-                    onDevelopScene={onDevelopScene}
-                  />
+                  {episodeHero}
                   <CastStrip cast={blueprint.cast} onSelect={setSelectedCast} />
                 </div>
                 <div className={styles.dashboardSecondary}>
-                  <StudioFeatureGrid
-                    features={primaryFeatures}
-                    blueprint={blueprint}
-                    onOpen={onOpenFeature}
-                  />
+                  <StudioFeatureGrid features={primaryFeatures} blueprint={blueprint} onOpen={onOpenFeature} />
                   <StoryEnginePanel blueprint={blueprint} />
                 </div>
               </div>
               <CreativeDNA blueprint={blueprint} />
-              <StudioFeatureGrid
-                title="Story Tools"
-                features={secondaryFeatures}
-                blueprint={blueprint}
-                onOpen={onOpenFeature}
-              />
+              <StudioFeatureGrid title="Story Tools" features={secondaryFeatures} blueprint={blueprint} onOpen={onOpenFeature} />
             </div>
           ) : null}
 
           {activeTab === "episode" ? (
             <div className={styles.tabScene} data-testid="episode-tab">
               {header}
-              <EpisodeHero
-                blueprint={blueprint}
-                completedBeatIds={completedBeatIds}
-                expandedBeatId={expandedBeatId}
-                onToggleBeat={toggleBeat}
-                onDevelopScene={onDevelopScene}
-              />
+              {episodeHero}
               <StoryEnginePanel blueprint={blueprint} />
             </div>
           ) : null}
