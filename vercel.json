@@ -1,0 +1,1 @@
+{"crons":[{"path":"/api/internal/storyboard-jobs/process","schedule":"* * * * *"}]}

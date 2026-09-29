@@ -1,0 +1,25 @@
+import {describe,expect,it} from "vitest";
+import {theWoundsWeKeep} from "@/lib/series/demoBlueprint";
+import {buildValidScene} from "@/lib/scenes/__tests__/fixtures";
+import {buildValidScript} from "@/lib/scripts/__tests__/fixtures";
+import {buildValidVisualPlan} from "@/lib/visual-planning/__tests__/fixtures";
+import {compileStoryboardBlueprint} from "../compileStoryboardBlueprint";
+const base={storyboardId:"66666666-6666-4666-8666-666666666666",seriesId:"22222222-2222-4222-8222-222222222222",sceneId:"11111111-1111-4111-8111-111111111111",scriptId:"33333333-3333-4333-8333-333333333333",visualPlanId:"55555555-5555-4555-8555-555555555555",version:1,series:theWoundsWeKeep,scene:buildValidScene(),script:buildValidScript(),visualPlan:buildValidVisualPlan()};
+describe("compileStoryboardBlueprint",()=>{
+ it("consumes VisualPlan",()=>expect(compileStoryboardBlueprint(base).blueprint.visualPlanId).toBe(base.visualPlanId));
+ it("keeps parent IDs",()=>{const b=compileStoryboardBlueprint(base).blueprint;expect([b.seriesId,b.sceneId,b.scriptId]).toEqual([base.seriesId,base.sceneId,base.scriptId]);});
+ it("bounds normal short-scene panel count",()=>expect(compileStoryboardBlueprint(base).blueprint.panels.length).toBeLessThanOrEqual(8));
+ it("caps long plans at eight panels",()=>{const v=structuredClone(base.visualPlan);v.visualBeats=Array.from({length:12},(_,i)=>({...v.visualBeats[i%4],id:"beatx"+i,sourceScriptBlockIds:["source_"+i]}));expect(compileStoryboardBlueprint({...base,visualPlan:v}).blueprint.panels.length).toBe(8);});
+ it("retains every source Script block when long plans are grouped",()=>{const v=structuredClone(base.visualPlan);v.visualBeats=Array.from({length:12},(_,i)=>({...v.visualBeats[i%4],id:"beatx"+i,sourceScriptBlockIds:["source_"+i]}));const panels=compileStoryboardBlueprint({...base,visualPlan:v}).blueprint.panels;expect(new Set(panels.flatMap(p=>p.sourceScriptBlockIds)).size).toBe(12);});
+ it("does not inflate a one-beat plan",()=>{const v=structuredClone(base.visualPlan);v.visualBeats=[v.visualBeats[0]];expect(compileStoryboardBlueprint({...base,visualPlan:v}).blueprint.panels).toHaveLength(1);});
+ it("orders panels deterministically",()=>expect(compileStoryboardBlueprint(base).blueprint.panels.map(p=>p.sequenceIndex)).toEqual([0,1,2,3]));
+ it("preserves sourceVisualBeatId",()=>expect(compileStoryboardBlueprint(base).blueprint.panels[0].sourceVisualBeatId).toBe(base.visualPlan.visualBeats[0].id));
+ it("preserves sourceScriptBlockIds",()=>expect(compileStoryboardBlueprint(base).blueprint.panels[0].sourceScriptBlockIds).toEqual(base.visualPlan.visualBeats[0].sourceScriptBlockIds));
+ it("uses relevant cast only",()=>expect(compileStoryboardBlueprint(base).specs[0].characters.some(c=>c.characterId==="char_pip")).toBe(false));
+ it("preserves appearance continuity",()=>expect(compileStoryboardBlueprint(base).specs[0].characters[0].continuityRequirements.length).toBeGreaterThan(0));
+ it("preserves location continuity",()=>expect(compileStoryboardBlueprint(base).specs[0].environment.locationId).toBe("location_border_town"));
+ it("inherits visual style description",()=>expect(compileStoryboardBlueprint(base).specs[0].creativeDirection.visualStyleDescription).toBe(theWoundsWeKeep.creativeDNA.visualStyle.description));
+ it("inherits visual tags",()=>expect(compileStoryboardBlueprint(base).specs[0].creativeDirection.visualTags).toEqual(theWoundsWeKeep.creativeDNA.visualStyle.tags));
+ it("inherits protected mysteries",()=>expect(compileStoryboardBlueprint(base).blueprint.continuityChecks.protectedMysteries).toContain("mystery_creatures"));
+ it("starts every panel PENDING with no asset",()=>expect(compileStoryboardBlueprint(base).blueprint.panels.every(p=>p.generationStatus==="PENDING"&&p.asset===null)).toBe(true));
+});
