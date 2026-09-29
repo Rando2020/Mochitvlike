@@ -1,18 +1,20 @@
 import { notFound } from "next/navigation";
-import { SceneWorkspace } from "@/components/scenes/SceneWorkspace";
-import { getLatestScript } from "@/lib/scripts/persistence/getScript";
+import { ScriptWorkspace } from "@/components/scripts/ScriptWorkspace";
+import { getScript } from "@/lib/scripts/persistence/getScript";
+import { listScripts } from "@/lib/scripts/persistence/listScripts";
+import { ScriptPersistenceError } from "@/lib/scripts/persistence/types";
 import { getScene } from "@/lib/scenes/persistence/getScene";
 import { ScenePersistenceError } from "@/lib/scenes/persistence/types";
 import { getSeries } from "@/lib/series/persistence/getSeries";
 import { SeriesPersistenceError } from "@/lib/series/persistence/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export default async function ScenePage({
+export default async function ScriptPage({
   params
 }: {
-  params: Promise<{ seriesId: string; sceneId: string }>;
+  params: Promise<{ seriesId: string; sceneId: string; scriptId: string }>;
 }) {
-  const { seriesId, sceneId } = await params;
+  const { seriesId, sceneId, scriptId } = await params;
   const supabase = await createServerSupabaseClient();
   const { data: { user }, error } = await supabase.auth.getUser();
 
@@ -21,30 +23,15 @@ export default async function ScenePage({
   try {
     const series = await getSeries(supabase, user.id, seriesId);
     const scene = await getScene(supabase, user.id, seriesId, sceneId, series.blueprint);
-    const latest = await getLatestScript(
-      supabase,
-      user.id,
-      seriesId,
-      sceneId,
-      series.blueprint,
-      scene.blueprint
-    );
+    const [script, versions] = await Promise.all([
+      getScript(supabase, user.id, seriesId, sceneId, scriptId, series.blueprint, scene.blueprint),
+      listScripts(supabase, user.id, seriesId, sceneId)
+    ]);
 
-    return (
-      <SceneWorkspace
-        scene={scene.blueprint}
-        series={series.blueprint}
-        latestScript={latest ? {
-          id: latest.id,
-          version: latest.version,
-          status: latest.status,
-          estimatedDurationSeconds: latest.script.estimatedDurationSeconds,
-          updatedAt: latest.updatedAt
-        } : null}
-      />
-    );
+    return <ScriptWorkspace script={script.script} versions={versions} series={series.blueprint} />;
   } catch (caught) {
     if (
+      (caught instanceof ScriptPersistenceError && caught.code === "SCRIPT_NOT_FOUND") ||
       (caught instanceof ScenePersistenceError && caught.code === "SCENE_NOT_FOUND") ||
       (caught instanceof SeriesPersistenceError && caught.code === "SERIES_NOT_FOUND")
     ) notFound();

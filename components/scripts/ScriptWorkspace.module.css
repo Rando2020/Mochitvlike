@@ -1,0 +1,166 @@
+.root {
+  min-height: 100dvh;
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 20px 14px 80px;
+}
+.header {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: radial-gradient(circle at 90% 0%, rgba(141,120,255,.16), transparent 38%), var(--surface);
+}
+.header h1 {
+  margin: 6px 0 8px;
+  font-size: clamp(2rem, 8vw, 4rem);
+  letter-spacing: -.05em;
+  line-height: 1;
+}
+.header p {
+  margin: 0;
+  color: var(--muted);
+}
+.eyebrow {
+  color: #a999ff;
+  font-size: .7rem;
+  font-weight: 850;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.primaryButton {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid rgba(141,120,255,.3);
+  border-radius: 14px;
+  background: rgba(141,120,255,.12);
+  color: #d7d0ff;
+  font-weight: 800;
+}
+.versionRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+.versionRow label {
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 800;
+}
+.versionRow select {
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 12px;
+  background: var(--surface);
+  color: inherit;
+}
+.script {
+  display: grid;
+  gap: 20px;
+  padding: 24px 18px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+}
+.action {
+  margin: 0;
+  color: var(--muted-strong);
+  line-height: 1.7;
+}
+.dialogue {
+  width: min(100%, 560px);
+  margin: 0 auto;
+  text-align: center;
+}
+.dialogue strong {
+  display: block;
+  font-size: .78rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.dialogue span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: .78rem;
+  font-style: italic;
+}
+.dialogue p {
+  margin: 8px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+.reaction {
+  margin: 0;
+  padding-left: 14px;
+  border-left: 2px solid rgba(169,153,255,.35);
+  color: var(--muted-strong);
+  font-style: italic;
+}
+.pause {
+  text-align: center;
+  color: var(--muted);
+}
+.pause span {
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.pause p {
+  margin: 5px 0 0;
+  font-size: .84rem;
+}
+.checks {
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.checksButton {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 800;
+}
+.checkGrid {
+  display: grid;
+  gap: 8px;
+  padding: 0 16px 16px;
+}
+.checkGrid div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+.checkGrid span {
+  color: #8fe1bd;
+}
+@media (min-width: 760px) {
+  .root { padding: 30px 24px 90px; }
+  .header {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding: 34px;
+  }
+  .script { padding: 42px; }
+  .checkGrid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}

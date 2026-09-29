@@ -1,3 +1,8 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import type { ScriptSummary } from "@/lib/scripts/types";
 import type { SceneBlueprint } from "@/lib/scenes/types";
 import type { SeriesBlueprint } from "@/lib/series/types";
 import styles from "./SceneWorkspace.module.css";
@@ -22,13 +27,56 @@ function Section({
 
 export function SceneWorkspace({
   scene,
-  series
+  series,
+  latestScript
 }: {
   scene: SceneBlueprint;
   series: SeriesBlueprint;
+  latestScript?: ScriptSummary | null;
 }) {
+  const router = useRouter();
+  const [writing, setWriting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const sourceBeat = series.episodeOne.beats.find((beat) => beat.id === scene.sourceBeatId);
   const castById = new Map(series.cast.map((member) => [member.id, member]));
+
+  const handleWrite = async () => {
+    if (latestScript) {
+      router.push(`/series/${scene.seriesId}/scenes/${scene.id}/scripts/${latestScript.id}`);
+      return;
+    }
+
+    setWriting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `/api/series/${scene.seriesId}/scenes/${scene.id}/scripts/generate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "INITIAL" })
+        }
+      );
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        setError(body?.error?.code ?? "SCRIPT_GENERATION_FAILED");
+        return;
+      }
+
+      const body = await response.json() as {
+        script: {
+          id: string;
+        };
+      };
+
+      router.push(`/series/${scene.seriesId}/scenes/${scene.id}/scripts/${body.script.id}`);
+    } finally {
+      setWriting(false);
+    }
+  };
 
   return (
     <main className={styles.root}>
@@ -37,9 +85,17 @@ export function SceneWorkspace({
           <span className={styles.eyebrow}>Scene plan</span>
           <h1>{scene.identity.title}</h1>
           <p>{scene.identity.shortDescription}</p>
+          {error ? (
+            <p role="alert">The script could not be written safely yet. Please try again.</p>
+          ) : null}
         </div>
-        <button type="button" className={styles.primaryButton} disabled>
-          Write Scene
+        <button
+          type="button"
+          className={styles.primaryButton}
+          onClick={() => void handleWrite()}
+          disabled={writing}
+        >
+          {writing ? "Writing…" : latestScript ? "Continue Script" : "Write Scene"}
         </button>
       </header>
 
@@ -106,9 +162,7 @@ export function SceneWorkspace({
 
         <Section eyebrow="Action intent" title="What must happen physically">
           <p>{scene.actionIntent.summary}</p>
-          <ul>
-            {scene.actionIntent.requiredActions.map((action) => <li key={action}>{action}</li>)}
-          </ul>
+          <ul>{scene.actionIntent.requiredActions.map((action) => <li key={action}>{action}</li>)}</ul>
         </Section>
 
         <Section eyebrow="Emotional turn" title={scene.emotionalTurn.from + " → " + scene.emotionalTurn.to}>
