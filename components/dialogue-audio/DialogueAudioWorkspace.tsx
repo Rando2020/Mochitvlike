@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useMemo,useRef,useState} from "react";
+import {useRouter} from "next/navigation";
 import type {EpisodeTimeline} from "@/lib/episodes/assembly/types";
 import type {DialogueAudioPlan,DialoguePlanStatus,VoiceCast} from "@/lib/dialogue-audio/types";
 import styles from "./DialogueAudioWorkspace.module.css";
@@ -12,12 +13,13 @@ function toView(plan:DialogueAudioPlan):DialoguePlanView{
 const fmt=(s:number)=>{const m=Math.floor(s/60),r=s-m*60;return m+":"+r.toFixed(1).padStart(4,"0");};
 const stateLabel=(line:StatusLine)=>line.generationStatus==="COMPLETED"?(line.timing.fit==="TOO_LONG"?"Runs long":"Ready"):line.generationStatus==="FAILED"?"Needs retry":line.generationStatus==="GENERATING"?"Voicing…":"Waiting";
 
-export function DialogueAudioWorkspace({timeline,initialPlan,initialStatus,voiceCast,statusEndpoint,retryBase}:{
-  timeline:EpisodeTimeline;initialPlan:DialogueAudioPlan;initialStatus:DialoguePlanStatus;voiceCast:VoiceCast;statusEndpoint:string;retryBase:string;
+export function DialogueAudioWorkspace({timeline,initialPlan,initialStatus,voiceCast,statusEndpoint,retryBase,soundBase,latestSound}:{
+  timeline:EpisodeTimeline;initialPlan:DialogueAudioPlan;initialStatus:DialoguePlanStatus;voiceCast:VoiceCast;statusEndpoint:string;retryBase:string;soundBase:string;latestSound?:{id:string}|null;
 }){
+  const router=useRouter();
   const [plan,setPlan]=useState<DialoguePlanView>(()=>toView(initialPlan));
   const [status,setStatus]=useState(initialStatus);
-  const [currentTime,setCurrentTime]=useState(0),[playing,setPlaying]=useState(false),[muted,setMuted]=useState(false),[showDialogue,setShowDialogue]=useState(true),[retrying,setRetrying]=useState<string|null>(null);
+  const [currentTime,setCurrentTime]=useState(0),[playing,setPlaying]=useState(false),[muted,setMuted]=useState(false),[showDialogue,setShowDialogue]=useState(true),[retrying,setRetrying]=useState<string|null>(null),[soundBusy,setSoundBusy]=useState(false),[soundError,setSoundError]=useState<string|null>(null);
   const videoRef=useRef<HTMLVideoElement|null>(null),audioRef=useRef<HTMLAudioElement|null>(null),lastTick=useRef<number|null>(null);
   const clips=useMemo(()=>timeline.scenes.flatMap(s=>s.clips),[timeline]);
   const activeClip=clips.find(c=>currentTime>=c.startSeconds&&currentTime<c.startSeconds+c.durationSeconds)??clips.at(-1)!;
@@ -59,10 +61,16 @@ export function DialogueAudioWorkspace({timeline,initialPlan,initialStatus,voice
 
   const retry=async(lineId:string)=>{setRetrying(lineId);try{const r=await fetch(retryBase+"/lines/"+lineId+"/retry",{method:"POST"});if(r.ok){setPlan(p=>({...p,lines:p.lines.map(l=>l.id===lineId?{...l,generationStatus:"PENDING",audioAsset:null,timing:{naturalDurationSeconds:null,differenceSeconds:null,fit:"UNKNOWN"},error:null}:l)}));setStatus("GENERATING");}}finally{setRetrying(null);}};
   const playSample=(characterId:string)=>{const line=plan.lines.find(l=>l.characterId===characterId&&l.audioAsset);if(line?.audioAsset)void new Audio(line.audioAsset.url).play();};
+  const addSound=async()=>{
+    const publicBase=soundBase.replace("/api/series","/series");
+    if(latestSound){router.push(publicBase+"/sound/"+latestSound.id);return;}
+    setSoundBusy(true);setSoundError(null);
+    try{const r=await fetch(soundBase+"/sound/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"INITIAL"})});const b=await r.json().catch(()=>null);if(!r.ok){setSoundError(b?.error?.code??"SOUND_GENERATION_FAILED");return;}router.push(publicBase+"/sound/"+b.sound.id);}finally{setSoundBusy(false);}
+  };
 
   return <main className={styles.root}>
-    <header className={styles.hero}><div><span className={styles.eyebrow}>Dialogue Audio</span><h1>{timeline.identity.title}</h1><p>AI-generated character voices · visual timing stays fixed</p></div><button className={styles.primary} disabled>Add Sound</button></header>
-    <p className={styles.disclosure}>Voices in this preview are AI-generated.</p>
+    <header className={styles.hero}><div><span className={styles.eyebrow}>Dialogue Audio</span><h1>{timeline.identity.title}</h1><p>AI-generated character voices · visual timing stays fixed</p></div><button className={styles.primary} disabled={soundBusy||status==="GENERATING"||status==="FAILED"} onClick={()=>void addSound()}>{soundBusy?"Preparing sound…":latestSound?"Open Sound":"Add Sound"}</button></header>
+    <p className={styles.disclosure}>Voices in this preview are AI-generated.</p>{soundError?<p role="alert" className={styles.disclosure}>{soundError==="DIALOGUE_AUDIO_INCOMPLETE"?"Finish or resolve dialogue audio before adding sound.":"Sound could not be prepared safely yet."}</p>:null}
 
     <section className={styles.player}>
       <div className={styles.viewport}>
