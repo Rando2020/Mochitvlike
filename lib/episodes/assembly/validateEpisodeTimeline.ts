@@ -55,7 +55,8 @@ export function validateEpisodeTimeline(input:unknown,contexts:EpisodeValidation
         if(!motion.outputAsset)problems.push("completed Motion clip lacks output asset");
         if(clip.mediaType!=="MOTION_VIDEO")problems.push("completed Motion clip must use MOTION_VIDEO");
         if(motion.outputAsset&&clip.asset.url!==motion.outputAsset.url)problems.push("wrong Motion output asset");
-        if(motion.outputAsset&&motion.outputAsset.durationSeconds+0.01<clip.durationSeconds)problems.push("source video shorter than timeline usage");
+        if(motion.outputAsset&&clip.asset.sourceDurationSeconds!==motion.outputAsset.durationSeconds)problems.push("Motion source duration metadata changed");
+        if(clip.asset.sourceDurationSeconds!==null&&clip.asset.sourceDurationSeconds+0.01<clip.durationSeconds)problems.push("source video shorter than timeline usage");
       }else if(motion.generationStatus==="SKIPPED"){
         if(clip.mediaType!=="STILL_HOLD")problems.push("SKIPPED Motion clip must use STILL_HOLD");
         if(clip.asset.url!==motion.inputAsset.url)problems.push("SKIPPED clip must use Storyboard still");

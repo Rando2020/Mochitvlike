@@ -13,7 +13,11 @@ describe("buildStoryboardPanelPrompt",()=>{
  it("blocks text and watermarks",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).negativeConstraints.join(" ")).toMatch(/text.*watermark/i));
  it("blocks extra characters",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).negativeConstraints.join(" ")).toMatch(/extra people/i));
  it("blocks costume drift",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).negativeConstraints.join(" ")).toMatch(/costume/i));
- it("distinguishes storyboard from marketing art",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).prompt).toMatch(/storyboard.*marketing/i));
+ it("distinguishes storyboard from marketing art",()=>{
+   const prompt=buildStoryboardPanelPrompt(c.specs[0]).prompt;
+   expect(prompt).toContain("storyboard");
+   expect(prompt).toContain("marketing");
+ });
  it("contains no runtime system prompt field",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).prompt).not.toContain("system_prompt"));
  it("contains no avatar prompt field",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).prompt).not.toContain("avatarPrompt"));
  it("contains no provider credential",()=>expect(buildStoryboardPanelPrompt(c.specs[0]).prompt).not.toContain("OPENAI_API_KEY"));

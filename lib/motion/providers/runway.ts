@@ -57,14 +57,18 @@ export class RunwayMotionVideoProvider implements MotionVideoProvider{
       if(!response.ok)throw new VideoProviderMalformedResponseError();
       const body=await safeJson(response);
       if(!body||typeof body.id!=="string")throw new VideoProviderMalformedResponseError();
-      taskId=body.id;
-      if(input.onTaskCreated)await input.onTaskCreated(taskId);
+      const createdTaskId=body.id as string;
+      taskId=createdTaskId;
+      if(input.onTaskCreated)await input.onTaskCreated(createdTaskId);
     }
+
+    const durableTaskId=taskId;
+    if(!durableTaskId)throw new VideoProviderMalformedResponseError();
 
     const started=Date.now();
     while(true){
       if(input.signal?.aborted||Date.now()-started>MAX_WAIT_MS)throw new VideoProviderTimeoutError();
-      const task=await retrieve(taskId,input.signal);
+      const task=await retrieve(durableTaskId,input.signal);
       if(task.status==="FAILED"||task.status==="CANCELED")throw new VideoProviderRefusalError();
       if(task.status==="SUCCEEDED"){
         const output=task.output?.[0];
@@ -75,7 +79,7 @@ export class RunwayMotionVideoProvider implements MotionVideoProvider{
         if(!video.ok)throw new VideoProviderTransientError();
         const bytes=new Uint8Array(await video.arrayBuffer());
         if(bytes.byteLength<1024)throw new VideoProviderMalformedResponseError();
-        return{bytes,mimeType:"video/mp4",durationSeconds:providerDuration,width:1280,height:720,provider:this.name,model:this.model,providerTaskId:taskId};
+        return{bytes,mimeType:"video/mp4",durationSeconds:providerDuration,width:1280,height:720,provider:this.name,model:this.model,providerTaskId:durableTaskId};
       }
       await new Promise<void>((resolve,reject)=>{
         const timer=setTimeout(resolve,POLL_MS);
