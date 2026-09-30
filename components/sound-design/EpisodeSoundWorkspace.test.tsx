@@ -2,12 +2,13 @@ import {fireEvent,render,screen} from "@testing-library/react";
 import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
 import {buildValidSound} from "@/lib/sound-design/__tests__/fixtures";
 import {buildEpisodeMixTimeline} from "@/lib/sound-design/mix";
+import type {SoundCueState} from "@/lib/sound-design/types";
 import {EpisodeSoundWorkspace} from "./EpisodeSoundWorkspace";
 
 function ready(){
  const f=buildValidSound(),dialogue=structuredClone(f.plan),plan=structuredClone(f.soundPlan);
  dialogue.lines.forEach((l,i)=>{l.generationStatus="COMPLETED";l.audioAsset={url:"https://example.com/dialogue-"+i+".wav",storagePath:"d-"+i+".wav",mimeType:"audio/wav",durationSeconds:l.visualWindowSeconds,sampleRate:24000,channels:1};});
- const states=plan.cues.filter(c=>c.type!=="SILENCE").map((c,i)=>({cueId:c.id,status:"COMPLETED" as const,asset:{url:"https://example.com/sound-"+i+".mp3",storagePath:"s-"+i+".mp3",mimeType:"audio/mpeg" as const,durationSeconds:c.type==="AMBIENCE"&&c.loopable?Math.min(30,c.durationSeconds):c.durationSeconds,durationSource:"REQUESTED" as const,loopable:c.type==="AMBIENCE"&&c.loopable},errorCode:null,retryCount:0}));
+ const states:SoundCueState[]=plan.cues.filter(c=>c.type!=="SILENCE").map((c,i)=>({cueId:c.id,status:"COMPLETED" as const,asset:{url:"https://example.com/sound-"+i+".mp3",storagePath:"s-"+i+".mp3",mimeType:"audio/mpeg" as const,durationSeconds:c.type==="AMBIENCE"&&c.loopable?Math.min(30,c.durationSeconds):c.durationSeconds,durationSource:"REQUESTED" as const,loopable:c.type==="AMBIENCE"&&c.loopable},errorCode:null,retryCount:0}));
  const mix=buildEpisodeMixTimeline({episode:f.episodeTimeline,dialogue,plan,states});
  return{...f,dialogue,plan,states,mix};
 }
