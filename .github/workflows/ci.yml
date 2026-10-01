@@ -20,7 +20,10 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: python -m pip install -r ml/visual-evaluation/requirements.lock
       - run: python -m pip install -e ml/visual-evaluation --no-deps
+      - run: python -m pip install -r ml/visual-inference/requirements.lock
+      - run: python -m pip install -e ml/visual-inference --no-deps
       - run: npm run typecheck
       - run: npm test
       - run: pytest ml/visual-evaluation/tests
+      - run: pytest ml/visual-inference/tests
       - run: npm run build
