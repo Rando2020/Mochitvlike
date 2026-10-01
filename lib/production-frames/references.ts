@@ -1,7 +1,7 @@
 import type {ProductionReferenceAsset} from "./types";
 
 export class ProductionReferenceError extends Error{
- constructor(public readonly code:"MISSING_PRODUCTION_REFERENCE"|"UNAPPROVED_PRODUCTION_REFERENCE"|"BENCHMARK_REFERENCE_FORBIDDEN",message:string){super(message);}
+ constructor(public readonly code:"MISSING_PRODUCTION_REFERENCE"|"UNAPPROVED_PRODUCTION_REFERENCE"|"BENCHMARK_REFERENCE_FORBIDDEN",message:string){super(`${code}: ${message}`);}
 }
 export function assertProductionReference(reference:ProductionReferenceAsset,modelId:string){
  if(reference.benchmarkOnly)throw new ProductionReferenceError("BENCHMARK_REFERENCE_FORBIDDEN","Benchmark-only references cannot be used for production frames.");
