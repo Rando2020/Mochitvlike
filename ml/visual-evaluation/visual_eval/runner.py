@@ -57,8 +57,11 @@ def execute_one(args:argparse.Namespace)->tuple[EvaluationResult,Path]:
     scenario=get_scenario(bundle,args.scenario,ability=ability)
     prompt=compile_visual_prompt(bundle,scenario.raw,ability=ability)
     cfg=config_for(model.id)
+    width=512 if args.smoke else cfg.width
+    height=512 if args.smoke else cfg.height
+    steps=min(cfg.steps,8) if args.smoke else cfg.steps
     run_id=args.run_id or new_run_id();store=ArtifactStore(Path(args.artifacts_dir),run_id)
-    manifest={"schemaVersion":"visual-evaluation-run-v1","runId":run_id,"bundleSchema":bundle["schemaVersion"],"bundleContractChecksum":bundle["contractChecksum"],"modelId":model.id,"revision":model.revision,"phase":phase.value,"scenarioId":scenario.id,"seed":scenario.seed,"noAutomaticWinner":True}
+    manifest={"schemaVersion":"visual-evaluation-run-v1","runId":run_id,"bundleSchema":bundle["schemaVersion"],"bundleContractChecksum":bundle["contractChecksum"],"modelId":model.id,"revision":model.revision,"phase":phase.value,"scenarioId":scenario.id,"seed":scenario.seed,"smokeMode":args.smoke,"noAutomaticWinner":True}
     store.write_manifest(manifest)
 
     if args.dry_run:
@@ -73,7 +76,7 @@ def execute_one(args:argparse.Namespace)->tuple[EvaluationResult,Path]:
             snapshot=_snapshot(model);model_path=str(snapshot);checksum_verified,checksum_detail=verify_artifact_checksum(model,snapshot)
         pipe=_pipeline(model,model_path,args.mock)
         request=GenerationRequest(
-            prompt=prompt.prompt,seed=scenario.seed,width=cfg.width,height=cfg.height,steps=cfg.steps,guidance=cfg.guidance,
+            prompt=prompt.prompt,seed=scenario.seed,width=width,height=height,steps=steps,guidance=cfg.guidance,
             phase=phase.value,
             reference_image=Path(args.reference_image) if args.reference_image else None,
             control_image=Path(args.control_image) if args.control_image else None,
@@ -100,7 +103,7 @@ def execute_one(args:argparse.Namespace)->tuple[EvaluationResult,Path]:
         metadata=EvaluationMetadata(
             model_id=model.id,model_revision=model.revision,checksum_verified=checksum_verified,checksum_detail=checksum_detail,
             architecture=model.architecture,phase=phase.value,scenario_id=scenario.id,seed=scenario.seed,prompt_hash=prompt.prompt_hash,
-            model_settings={"steps":cfg.steps,"guidance":cfg.guidance,"width":cfg.width,"height":cfg.height,"dtype":cfg.dtype,"scheduler":cfg.scheduler,"runtime":_runtime_versions(),"provider":generated.provider_metadata},
+            model_settings={"steps":steps,"guidance":cfg.guidance,"width":width,"height":height,"dtype":cfg.dtype,"scheduler":cfg.scheduler,"smokeMode":args.smoke,"runtime":_runtime_versions(),"provider":generated.provider_metadata},
             reference_ids=[args.reference_image] if args.reference_image else [],lora_ids=[args.lora_path] if args.lora_path else [],
             controlnet={"image":args.control_image,"support":MODEL_ADAPTER_SUPPORT[model.id].controlnet} if args.control_image else None,
             performance_bible_version=bundle["performance"]["bibleVersion"] if ability else None,
@@ -126,7 +129,7 @@ def parser()->argparse.ArgumentParser:
     p.add_argument("--artifacts-dir",default="artifacts");p.add_argument("--run-id")
     p.add_argument("--reference-image");p.add_argument("--control-image");p.add_argument("--lora-path")
     p.add_argument("--external-cost-usd",type=float,default=None)
-    p.add_argument("--mock",action="store_true");p.add_argument("--dry-run",action="store_true")
+    p.add_argument("--mock",action="store_true");p.add_argument("--dry-run",action="store_true");p.add_argument("--smoke",action="store_true")
     return p
 
 def main(argv:list[str]|None=None)->int:

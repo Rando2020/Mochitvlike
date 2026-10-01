@@ -11,7 +11,7 @@ def args(tmp_path,**overrides):
     base=dict(
         bundle=str(BUNDLE),model="animagine-xl-4.0",phase="BASE",scenario="char-closeup",
         artifacts_dir=str(tmp_path),run_id="run",reference_image=None,control_image=None,lora_path=None,
-        external_cost_usd=None,mock=True,dry_run=False
+        external_cost_usd=None,mock=True,dry_run=False,smoke=False
     )
     base.update(overrides);return SimpleNamespace(**base)
 
@@ -71,3 +71,8 @@ def test_failed_inference_is_isolated(tmp_path,monkeypatch):
     result,_=execute_one(args(tmp_path))
     assert result.status=="FAILED" and result.error_code=="RuntimeError"
     assert "secret provider detail" not in (result.error_message or "")
+
+def test_smoke_mode_records_reduced_settings(tmp_path):
+    result,_=execute_one(args(tmp_path,smoke=True))
+    assert result.metadata and result.metadata.model_settings["smokeMode"] is True
+    assert result.metadata.model_settings["width"]==512 and result.metadata.model_settings["steps"]<=8
