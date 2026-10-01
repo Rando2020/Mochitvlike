@@ -42,7 +42,8 @@ export function buildProductionFrameGenerationSpec(input:{
   const context=buildProductionFramePerformanceContext({bible,context:input.canonContext,actionPatternId:binding.actionPatternId,signatureActionId:binding.signatureActionId,abilityId:binding.abilityId});
   contexts.push(context);
   if(context.ability){
-   const refs=requireAbilityReferences(input.references,context.ability.id,model.id);abilityRefs.push(...refs);
+   const requiredSlots=context.ability.referenceSheet.filter(slot=>slot.required).map(slot=>slot.slot);
+   const refs=requireAbilityReferences(input.references,context.ability.id,model.id,requiredSlots);abilityRefs.push(...refs);
    const effectiveBeats=[...context.ability.choreography.windup,...context.ability.choreography.activation,...context.ability.choreography.release,...context.ability.choreography.impact,...context.ability.choreography.recovery];
    abilities.push({
     characterId,abilityId:context.ability.id,abilityName:context.ability.name,variantId:context.ability.variant.id,

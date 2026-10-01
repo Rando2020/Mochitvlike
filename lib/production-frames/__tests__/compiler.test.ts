@@ -18,8 +18,9 @@ const panel=storyboard.panels[3];
 const bible=buildOrinPerformanceBible();
 const ability=bible.abilityKit[0];
 const model=VISUAL_FOUNDATION_MODELS[0];
-const ref=(id:string,type:ProductionReferenceAsset["type"],characterId:string|null,abilityId:string|null):ProductionReferenceAsset=>({id,type,assetUrl:"https://example.com/"+id+".png",checksum:"a".repeat(64),source:"OWNED",approved:true,benchmarkOnly:false,creatorApproved:true,characterId,abilityId,modelCompatibility:[model.id]});
-const references=[ref("ref-orin","CHARACTER","char_orin",null),ref("ref-mara","CHARACTER","char_mara",null),ref("ref-ability","ABILITY",null,ability.id)];
+const ref=(id:string,type:ProductionReferenceAsset["type"],characterId:string|null,abilityId:string|null,abilitySlot?:ProductionReferenceAsset["abilitySlot"]):ProductionReferenceAsset=>({id,type,assetUrl:"https://example.com/"+id+".png",checksum:"a".repeat(64),source:"OWNED",approved:true,benchmarkOnly:false,creatorApproved:true,characterId,abilityId,modelCompatibility:[model.id],...(abilitySlot?{abilitySlot}:{})});
+const abilityRefs=ability.referenceSheet.map((slot,i)=>ref("ref-ability-"+i,"ABILITY","char_orin",ability.id,slot.slot));
+const references=[ref("ref-orin","CHARACTER","char_orin",null),ref("ref-mara","CHARACTER","char_mara",null),...abilityRefs];
 function spec(overrides:Record<string,unknown>={}){
  return buildProductionFrameGenerationSpec({series:theWoundsWeKeep,scene:base.scene,script:base.script,visualPlan:base.visualPlan,storyboard,panel,model,developmentOverride:true,references,performanceBibles:[bible],performanceBindings:[{characterId:"char_orin",abilityId:ability.id}],canonContext:{episodeNumber:1,activeCanonFactIds:["fact_transfer","fact_banned"]},...overrides} as Parameters<typeof buildProductionFrameGenerationSpec>[0]);
 }
@@ -95,7 +96,7 @@ describe("prompt and provenance",()=>{
  it("benchmark-only reference is rejected",()=>{expect(()=>assertProductionReference({...references[0],benchmarkOnly:true,approved:false},model.id)).toThrowError(ProductionReferenceError);});
  it("unapproved reference is rejected",()=>{expect(()=>assertProductionReference({...references[0],approved:false},model.id)).toThrowError(ProductionReferenceError);});
  it("model-incompatible reference is rejected",()=>{expect(()=>assertProductionReference({...references[0],modelCompatibility:["other"]},model.id)).toThrowError(ProductionReferenceError);});
- it("missing character ref is rejected",()=>expect(()=>spec({references:[references[0],references[2]]})).toThrow("MISSING_PRODUCTION_REFERENCE"));
+ it("missing character ref is rejected",()=>expect(()=>spec({references:[references[0],abilityRefs[0]]})).toThrow("MISSING_PRODUCTION_REFERENCE"));
  it("missing ability ref is rejected",()=>expect(()=>spec({references:references.slice(0,2)})).toThrow("MISSING_PRODUCTION_REFERENCE"));
 });
 
