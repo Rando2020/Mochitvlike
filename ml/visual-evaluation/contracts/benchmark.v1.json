@@ -1,0 +1,1267 @@
+{
+  "schemaVersion": "visual-benchmark-bundle-v1",
+  "generatedFrom": {
+    "registry": "lib/visual-models/registry.ts",
+    "scenarios": "lib/visual-models/evaluation/scenarios.ts",
+    "performance": "lib/character-performance/__tests__/fixtures.ts",
+    "abilityBenchmark": "lib/character-performance/benchmark.ts"
+  },
+  "models": [
+    {
+      "id": "animagine-xl-4.0",
+      "displayName": "Animagine XL 4.0",
+      "source": {
+        "provider": "HUGGING_FACE",
+        "repository": "cagliostrolab/animagine-xl-4.0",
+        "revision": "2b7c1b397761bf5bd3cc42e5b39ec99314a75a96",
+        "artifactChecksum": "1d5b43ff75b6ab598502d4c779d2fbfa3dceca51c60c3b609640a60772333916",
+        "artifactFilename": "animagine-xl-4.0.safetensors"
+      },
+      "architecture": "SDXL",
+      "capabilities": {
+        "textToImage": true,
+        "imageToImage": true,
+        "inpainting": true,
+        "lora": true,
+        "ipAdapter": true,
+        "controlNet": true
+      },
+      "license": {
+        "identifier": "openrail++",
+        "commercialUse": "REVIEW_REQUIRED",
+        "trainingDerivatives": "REVIEW_REQUIRED",
+        "redistribution": "REVIEW_REQUIRED",
+        "notes": [
+          "Anime-focused SDXL candidate.",
+          "OpenRAIL++ rights and downstream obligations require product/legal review before APPROVED status."
+        ],
+        "verifiedAt": "2026-09-30",
+        "sourceUrl": "https://huggingface.co/cagliostrolab/animagine-xl-4.0"
+      },
+      "productionStatus": "CANDIDATE"
+    },
+    {
+      "id": "illustrious-xl-v2.0",
+      "displayName": "Illustrious XL v2.0 Stable",
+      "source": {
+        "provider": "HUGGING_FACE",
+        "repository": "OnomaAIResearch/Illustrious-XL-v2.0",
+        "revision": "69459c1fe6f46db41ab31e6114f05acc0e06bcaa",
+        "artifactChecksum": "c2a1a3eaa13d4c107dc7e00c3fe830cab427aa026362740ea094745b3422a331",
+        "artifactFilename": "Illustrious-XL-v2.0.safetensors"
+      },
+      "architecture": "SDXL",
+      "capabilities": {
+        "textToImage": true,
+        "imageToImage": true,
+        "inpainting": true,
+        "lora": true,
+        "ipAdapter": true,
+        "controlNet": true
+      },
+      "license": {
+        "identifier": "creativeml-openrail-m",
+        "commercialUse": "REVIEW_REQUIRED",
+        "trainingDerivatives": "REVIEW_REQUIRED",
+        "redistribution": "REVIEW_REQUIRED",
+        "notes": [
+          "Anime/illustration candidate with an SDXL-compatible ecosystem.",
+          "OpenRAIL-M restrictions and downstream obligations require review before APPROVED status."
+        ],
+        "verifiedAt": "2026-09-30",
+        "sourceUrl": "https://huggingface.co/OnomaAIResearch/Illustrious-XL-v2.0"
+      },
+      "productionStatus": "CANDIDATE"
+    },
+    {
+      "id": "flux.1-schnell",
+      "displayName": "FLUX.1 Schnell",
+      "source": {
+        "provider": "HUGGING_FACE",
+        "repository": "black-forest-labs/FLUX.1-schnell",
+        "revision": "cfac132b798278bc25d0d8a8608dc4522b13c615",
+        "artifactChecksum": null,
+        "artifactFilename": null
+      },
+      "architecture": "FLUX",
+      "capabilities": {
+        "textToImage": true,
+        "imageToImage": true,
+        "inpainting": true,
+        "lora": true,
+        "ipAdapter": true,
+        "controlNet": true
+      },
+      "license": {
+        "identifier": "apache-2.0",
+        "commercialUse": true,
+        "trainingDerivatives": true,
+        "redistribution": true,
+        "notes": [
+          "General-purpose control candidate rather than anime-specialized baseline.",
+          "Official model card explicitly permits personal, scientific, and commercial use.",
+          "Artifact checksum is intentionally null because the gated weight was not retrievable during registry research; this blocks APPROVED status."
+        ],
+        "verifiedAt": "2026-09-30",
+        "sourceUrl": "https://huggingface.co/black-forest-labs/FLUX.1-schnell"
+      },
+      "productionStatus": "CANDIDATE"
+    }
+  ],
+  "characters": [
+    {
+      "id": "kael",
+      "name": "Kael",
+      "appearance": "adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow",
+      "costume": "charcoal field jacket over a rust shirt, brass clasp, dark trousers",
+      "palette": [
+        "charcoal",
+        "rust",
+        "brass",
+        "amber"
+      ]
+    },
+    {
+      "id": "lyra",
+      "name": "Lyra",
+      "appearance": "adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye",
+      "costume": "deep teal fitted coat, cream high collar, silver geometric earrings",
+      "palette": [
+        "deep teal",
+        "cream",
+        "silver",
+        "black"
+      ]
+    },
+    {
+      "id": "mira",
+      "name": "Mira",
+      "appearance": "adult woman with dark brown skin, cropped copper curls, violet eyes, round wire-frame glasses",
+      "costume": "indigo utility vest over a pale gray blouse, leather notebook strap",
+      "palette": [
+        "indigo",
+        "copper",
+        "gray",
+        "violet"
+      ]
+    },
+    {
+      "id": "vesper",
+      "name": "Vesper",
+      "appearance": "adult androgynous rival with pale freckled skin, chin-length auburn hair, gray-green eyes",
+      "costume": "black asymmetric coat with crimson lining and a single obsidian shoulder guard",
+      "palette": [
+        "black",
+        "crimson",
+        "obsidian",
+        "gray-green"
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "char-closeup",
+      "category": "CHARACTER_IDENTITY",
+      "title": "Protagonist close-up",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Anime production close-up, neutral expression, clean cel shading, eye-level camera. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 1841538297,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "char-profile",
+      "category": "CHARACTER_IDENTITY",
+      "title": "Protagonist profile",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Strict left profile portrait, same facial identity and costume. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 870333845,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "char-fullbody",
+      "category": "CHARACTER_IDENTITY",
+      "title": "Protagonist full body",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Full-body standing production frame, entire costume visible. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 1062184389,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": "benchmark://pose/standing"
+    },
+    {
+      "id": "char-expression",
+      "category": "CHARACTER_IDENTITY",
+      "title": "Expression change",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Close-up with restrained grief while preserving identity. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 4071326322,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "char-angle",
+      "category": "CHARACTER_IDENTITY",
+      "title": "Camera angle change",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Three-quarter low-angle medium shot while preserving face and costume. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 1158814371,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "char-lighting",
+      "category": "CHARACTER_IDENTITY",
+      "title": "Lighting change",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Same character under cool moonlight with warm rim light. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 2414210484,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "multi-two",
+      "category": "MULTI_CHARACTER",
+      "title": "Two-character identity",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Original fictional characters. Two-shot conversation, each character visually distinct and correctly costumed. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael",
+        "lyra"
+      ],
+      "seed": 2904487697,
+      "references": [
+        "benchmark://character/kael",
+        "benchmark://character/lyra"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "multi-three",
+      "category": "MULTI_CHARACTER",
+      "title": "Three-character identity",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Mira: adult woman with dark brown skin, cropped copper curls, violet eyes, round wire-frame glasses; indigo utility vest over a pale gray blouse, leather notebook strap. Original fictional characters. Three-character group frame with clear identity separation. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael",
+        "lyra",
+        "mira"
+      ],
+      "seed": 3949669739,
+      "references": [
+        "benchmark://character/kael",
+        "benchmark://character/lyra",
+        "benchmark://character/mira"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "multi-separation",
+      "category": "MULTI_CHARACTER",
+      "title": "Identity separation",
+      "prompt": "Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Mira: adult woman with dark brown skin, cropped copper curls, violet eyes, round wire-frame glasses; indigo utility vest over a pale gray blouse, leather notebook strap. Original fictional characters. Medium two-shot, prevent hair, eye, clothing, or accessory swapping. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "lyra",
+        "mira"
+      ],
+      "seed": 2734461517,
+      "references": [
+        "benchmark://character/lyra",
+        "benchmark://character/mira"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "multi-costume",
+      "category": "MULTI_CHARACTER",
+      "title": "Stable costume attribution",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Vesper: adult androgynous rival with pale freckled skin, chin-length auburn hair, gray-green eyes; black asymmetric coat with crimson lining and a single obsidian shoulder guard. Original fictional characters. Confrontation frame, preserve each character's assigned coat and palette. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael",
+        "vesper"
+      ],
+      "seed": 3418576329,
+      "references": [
+        "benchmark://character/kael",
+        "benchmark://character/vesper"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "multi-attributes",
+      "category": "MULTI_CHARACTER",
+      "title": "Attribute attribution",
+      "prompt": "Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Vesper: adult androgynous rival with pale freckled skin, chin-length auburn hair, gray-green eyes; black asymmetric coat with crimson lining and a single obsidian shoulder guard. Original fictional characters. Close two-shot, preserve Lyra's braid/earrings and Vesper's freckles/shoulder guard. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "lyra",
+        "vesper"
+      ],
+      "seed": 2961002924,
+      "references": [
+        "benchmark://character/lyra",
+        "benchmark://character/vesper"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "pose-standing",
+      "category": "POSE_COMPOSITION",
+      "title": "Standing pose",
+      "prompt": "Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Original fictional characters. Relaxed standing pose, centered medium-full composition. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "lyra"
+      ],
+      "seed": 1932363883,
+      "references": [
+        "benchmark://character/lyra"
+      ],
+      "poseReference": "benchmark://pose/standing"
+    },
+    {
+      "id": "pose-running",
+      "category": "POSE_COMPOSITION",
+      "title": "Running pose",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Dynamic lateral running action keyframe with readable anatomy. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 839352170,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": "benchmark://pose/running"
+    },
+    {
+      "id": "pose-fight",
+      "category": "POSE_COMPOSITION",
+      "title": "Fight composition",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Vesper: adult androgynous rival with pale freckled skin, chin-length auburn hair, gray-green eyes; black asymmetric coat with crimson lining and a single obsidian shoulder guard. Original fictional characters. Two-person defensive combat stance, no contact gore. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael",
+        "vesper"
+      ],
+      "seed": 2619863275,
+      "references": [
+        "benchmark://character/kael",
+        "benchmark://character/vesper"
+      ],
+      "poseReference": "benchmark://pose/duel"
+    },
+    {
+      "id": "pose-seated",
+      "category": "POSE_COMPOSITION",
+      "title": "Seated dialogue",
+      "prompt": "Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Mira: adult woman with dark brown skin, cropped copper curls, violet eyes, round wire-frame glasses; indigo utility vest over a pale gray blouse, leather notebook strap. Original fictional characters. Seated dialogue at a small table, balanced two-shot. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "lyra",
+        "mira"
+      ],
+      "seed": 154250419,
+      "references": [
+        "benchmark://character/lyra",
+        "benchmark://character/mira"
+      ],
+      "poseReference": "benchmark://pose/seated"
+    },
+    {
+      "id": "pose-ots",
+      "category": "POSE_COMPOSITION",
+      "title": "Over shoulder",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Original fictional characters. Over-the-shoulder shot from Kael toward Lyra. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael",
+        "lyra"
+      ],
+      "seed": 2967504737,
+      "references": [
+        "benchmark://character/kael",
+        "benchmark://character/lyra"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "pose-low",
+      "category": "POSE_COMPOSITION",
+      "title": "Low angle",
+      "prompt": "Vesper: adult androgynous rival with pale freckled skin, chin-length auburn hair, gray-green eyes; black asymmetric coat with crimson lining and a single obsidian shoulder guard. Original fictional characters. Dramatic low-angle medium shot. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "vesper"
+      ],
+      "seed": 4240431403,
+      "references": [
+        "benchmark://character/vesper"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "pose-high",
+      "category": "POSE_COMPOSITION",
+      "title": "High angle",
+      "prompt": "Mira: adult woman with dark brown skin, cropped copper curls, violet eyes, round wire-frame glasses; indigo utility vest over a pale gray blouse, leather notebook strap. Original fictional characters. High-angle medium-full shot looking down. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "mira"
+      ],
+      "seed": 875056647,
+      "references": [
+        "benchmark://character/mira"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "pose-xcu",
+      "category": "POSE_COMPOSITION",
+      "title": "Extreme close-up",
+      "prompt": "Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Original fictional characters. Extreme close-up of eyes and upper face, preserve teal eyes and beauty mark. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "lyra"
+      ],
+      "seed": 438655281,
+      "references": [
+        "benchmark://character/lyra"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "pose-wide",
+      "category": "POSE_COMPOSITION",
+      "title": "Wide establishing",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Original fictional characters. Wide establishing shot in a quiet rain-soaked station platform, characters small in frame. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael",
+        "lyra"
+      ],
+      "seed": 1164521556,
+      "references": [
+        "benchmark://character/kael",
+        "benchmark://character/lyra"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "cont-room-reverse",
+      "category": "CONTINUITY",
+      "title": "Room reverse angle",
+      "prompt": "Mira: adult woman with dark brown skin, cropped copper curls, violet eyes, round wire-frame glasses; indigo utility vest over a pale gray blouse, leather notebook strap. Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Original fictional characters. Same indigo-walled archive room from reverse angle, same desk, lamp, shelves and seating arrangement. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "mira",
+        "lyra"
+      ],
+      "seed": 3060786292,
+      "references": [
+        "benchmark://character/mira",
+        "benchmark://character/lyra"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "cont-exterior",
+      "category": "CONTINUITY",
+      "title": "Exterior continuity",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Same rain-soaked station exterior as previous wide shot, alternate camera position, preserve signs and architecture without readable text. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 3172101242,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "cont-prop",
+      "category": "CONTINUITY",
+      "title": "Recurring prop",
+      "prompt": "Mira: adult woman with dark brown skin, cropped copper curls, violet eyes, round wire-frame glasses; indigo utility vest over a pale gray blouse, leather notebook strap. Original fictional characters. Medium shot holding the same worn brown leather notebook with brass corner guards. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "mira"
+      ],
+      "seed": 1244942177,
+      "references": [
+        "benchmark://character/mira"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "cont-costume",
+      "category": "CONTINUITY",
+      "title": "Recurring costume",
+      "prompt": "Vesper: adult androgynous rival with pale freckled skin, chin-length auburn hair, gray-green eyes; black asymmetric coat with crimson lining and a single obsidian shoulder guard. Original fictional characters. Different pose and camera angle, identical black coat, crimson lining and obsidian shoulder guard. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "vesper"
+      ],
+      "seed": 2441673910,
+      "references": [
+        "benchmark://character/vesper"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "cont-palette",
+      "category": "CONTINUITY",
+      "title": "Palette continuity",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Original fictional characters. Production frame preserving the established charcoal/rust and teal/cream character palettes in subdued rainy lighting. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael",
+        "lyra"
+      ],
+      "seed": 3670868831,
+      "references": [
+        "benchmark://character/kael",
+        "benchmark://character/lyra"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "anime-cel",
+      "category": "ANIME",
+      "title": "Cel production frame",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Clean 2D anime production frame, controlled line weight, two-tone cel shading, restrained texture. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 2156793478,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "anime-action",
+      "category": "ANIME",
+      "title": "Action keyframe",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Vesper: adult androgynous rival with pale freckled skin, chin-length auburn hair, gray-green eyes; black asymmetric coat with crimson lining and a single obsidian shoulder guard. Original fictional characters. High-energy anime action keyframe with readable silhouettes and speed emphasis. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael",
+        "vesper"
+      ],
+      "seed": 3717451308,
+      "references": [
+        "benchmark://character/kael",
+        "benchmark://character/vesper"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "anime-emotion",
+      "category": "ANIME",
+      "title": "Emotional close-up",
+      "prompt": "Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Original fictional characters. Quiet emotional anime close-up, subtle wet eyes, controlled facial anatomy. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "lyra"
+      ],
+      "seed": 2286833091,
+      "references": [
+        "benchmark://character/lyra"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "anime-comedy",
+      "category": "ANIME",
+      "title": "Comedy reaction",
+      "prompt": "Mira: adult woman with dark brown skin, cropped copper curls, violet eyes, round wire-frame glasses; indigo utility vest over a pale gray blouse, leather notebook strap. Original fictional characters. Anime comedy reaction frame with simplified expressive features while preserving identity. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "mira"
+      ],
+      "seed": 815718317,
+      "references": [
+        "benchmark://character/mira"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "anime-darkfantasy",
+      "category": "ANIME",
+      "title": "Dark fantasy environment",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Wide dark-fantasy ruin at blue hour, character identity readable but environment dominant. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 702506524,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "manga-mono",
+      "category": "MANGA",
+      "title": "Monochrome panel",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Black-and-white manga panel, clean inks, no grayscale painting, no lettering. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 685535717,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "manga-lineart",
+      "category": "MANGA",
+      "title": "Lineart panel",
+      "prompt": "Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Original fictional characters. Precise monochrome manga lineart portrait with controlled hatching. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "lyra"
+      ],
+      "seed": 2988399957,
+      "references": [
+        "benchmark://character/lyra"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "manga-screentone",
+      "category": "MANGA",
+      "title": "Screentone panel",
+      "prompt": "Mira: adult woman with dark brown skin, cropped copper curls, violet eyes, round wire-frame glasses; indigo utility vest over a pale gray blouse, leather notebook strap. Original fictional characters. Manga medium shot using screentone values and clean black fills. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "mira"
+      ],
+      "seed": 2231046550,
+      "references": [
+        "benchmark://character/mira"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "manga-action",
+      "category": "MANGA",
+      "title": "Action panel",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Vesper: adult androgynous rival with pale freckled skin, chin-length auburn hair, gray-green eyes; black asymmetric coat with crimson lining and a single obsidian shoulder guard. Original fictional characters. Diagonal manga action panel composition, speed lines, readable bodies, no text. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael",
+        "vesper"
+      ],
+      "seed": 1280695248,
+      "references": [
+        "benchmark://character/kael",
+        "benchmark://character/vesper"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "manga-dialogue",
+      "category": "MANGA",
+      "title": "Dialogue panel",
+      "prompt": "Lyra: adult woman with olive skin, long silver-black hair braided over one shoulder, teal eyes, small beauty mark beneath the right eye; deep teal fitted coat, cream high collar, silver geometric earrings. Mira: adult woman with dark brown skin, cropped copper curls, violet eyes, round wire-frame glasses; indigo utility vest over a pale gray blouse, leather notebook strap. Original fictional characters. Quiet two-character manga dialogue panel with intentional empty balloon-safe negative space but no lettering. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "lyra",
+        "mira"
+      ],
+      "seed": 4105201616,
+      "references": [
+        "benchmark://character/lyra",
+        "benchmark://character/mira"
+      ],
+      "poseReference": null
+    },
+    {
+      "id": "manga-environment",
+      "category": "MANGA",
+      "title": "Environment panel",
+      "prompt": "Kael: adult man with warm brown skin, short black curls, amber eyes, narrow scar through the left eyebrow; charcoal field jacket over a rust shirt, brass clasp, dark trousers. Original fictional characters. Wide monochrome manga environment panel of the rainy station, strong perspective and texture. No text, logos, copyrighted characters, franchise costumes, or celebrity likeness.",
+      "characterIds": [
+        "kael"
+      ],
+      "seed": 2062106079,
+      "references": [
+        "benchmark://character/kael"
+      ],
+      "poseReference": null
+    }
+  ],
+  "performance": {
+    "characterId": "char_orin",
+    "bibleVersion": 1,
+    "movement": {
+      "posture": "Slightly guarded and tired, shoulders contained, hands kept close enough to protect or treat.",
+      "silhouettePrinciples": [
+        "compact shoulders",
+        "hands close to torso",
+        "little arm swing",
+        "forward attention",
+        "forward lean",
+        "compact elbows"
+      ],
+      "physicalPrinciples": [
+        "Economy over flourish.",
+        "Medical hand precision remains visible under stress.",
+        "Emotional strain contracts his movement before it expands it."
+      ],
+      "mustNotDo": [
+        "Swaggering heroic poses unsupported by the scene.",
+        "Large acrobatic flourishes as a default movement language."
+      ]
+    },
+    "ability": {
+      "id": "ability_30c0527540b7b6643943",
+      "name": "Burden Draw",
+      "variantId": "variant_08b360577b78611cab4f",
+      "variantVersion": 1,
+      "activation": {
+        "startPose": {
+          "stance": "kneeling or braced beside the injured person",
+          "facing": "toward the injury",
+          "weightDistribution": "weight committed through the contact arm",
+          "handPositions": [
+            "one wrapped hand makes direct contact",
+            "free hand braces near Orin's sternum"
+          ],
+          "silhouette": "one grounded contact line connecting healer and patient",
+          "poseReferenceId": "pose_orin_burden_draw_activation"
+        },
+        "handPositions": [
+          "one wrapped palm directly contacts the injury",
+          "free hand braces near Orin's sternum"
+        ],
+        "bodyMotion": [
+          "grounded forward lean",
+          "contact arm stays controlled",
+          "recoil collapses inward rather than outward"
+        ],
+        "facialExpression": "focused restraint that breaks into a brief involuntary wince",
+        "prerequisiteState": [
+          "An existing injury is present.",
+          "Orin can make physical contact."
+        ],
+        "requiredPropIds": []
+      },
+      "choreography": {
+        "windup": [
+          {
+            "id": "beat_24f08e9ecc6b4668427a",
+            "phase": "WINDUP",
+            "description": "Orin settles the wrapped contact hand over the existing injury and locks his shoulders.",
+            "body": {
+              "torso": "leans toward contact",
+              "head": null,
+              "leftArm": "free hand braces near sternum",
+              "rightArm": "contact arm straightens only enough to establish full palm contact",
+              "leftLeg": null,
+              "rightLeg": null,
+              "hands": []
+            },
+            "movementVector": "toward patient",
+            "intensity": 0.45,
+            "durationHintSeconds": 0.6,
+            "requiredVisualElements": [
+              "wrapped contact hand",
+              "visible injury location"
+            ]
+          }
+        ],
+        "activation": [
+          {
+            "id": "beat_4e990f937c3336e78dcb",
+            "phase": "ACTION",
+            "description": "The wound's vivid color compresses toward the point under Orin's palm.",
+            "body": {
+              "torso": null,
+              "head": "eyes stay on the patient",
+              "leftArm": null,
+              "rightArm": "contact remains fixed",
+              "leftLeg": null,
+              "rightLeg": null,
+              "hands": []
+            },
+            "movementVector": "patient to contact hand",
+            "intensity": 0.65,
+            "durationHintSeconds": 0.8,
+            "requiredVisualElements": [
+              "color compression",
+              "stable hand contact"
+            ]
+          }
+        ],
+        "release": [
+          {
+            "id": "beat_7ad747ef78be96944256",
+            "phase": "CONTACT",
+            "description": "The injury vanishes from the patient as the same burden traces beneath Orin's wrapped arm.",
+            "body": {
+              "torso": "absorbs a small recoil",
+              "head": null,
+              "leftArm": null,
+              "rightArm": "arm tenses but does not fling outward",
+              "leftLeg": null,
+              "rightLeg": null,
+              "hands": []
+            },
+            "movementVector": "contact hand toward Orin",
+            "intensity": 0.8,
+            "durationHintSeconds": 0.5,
+            "requiredVisualElements": [
+              "transfer line",
+              "patient wound visibly reduced"
+            ]
+          }
+        ],
+        "impact": [
+          {
+            "id": "beat_ae75b3cbf1bf749ec54e",
+            "phase": "IMPACT",
+            "description": "Orin's body takes the cost: his breath catches and a contained unnatural pulse moves under the wrapping.",
+            "body": {
+              "torso": "brief inward contraction",
+              "head": "chin drops",
+              "leftArm": null,
+              "rightArm": null,
+              "leftLeg": null,
+              "rightLeg": null,
+              "hands": [
+                "contact hand begins to release"
+              ]
+            },
+            "movementVector": "inward toward Orin",
+            "intensity": 0.75,
+            "durationHintSeconds": 0.45,
+            "requiredVisualElements": [
+              "contained under-skin pulse",
+              "no outward attack blast"
+            ]
+          }
+        ],
+        "recovery": [
+          {
+            "id": "beat_8bac25dc61c09f818e74",
+            "phase": "RECOVERY",
+            "description": "He removes contact slowly and hides the affected hand close to his body.",
+            "body": {
+              "torso": "returns to guarded posture",
+              "head": null,
+              "leftArm": null,
+              "rightArm": "withdraws close to torso",
+              "leftLeg": null,
+              "rightLeg": null,
+              "hands": []
+            },
+            "movementVector": "back toward self",
+            "intensity": 0.35,
+            "durationHintSeconds": 0.65,
+            "requiredVisualElements": [
+              "slow contact break",
+              "protected wrapped hand"
+            ]
+          }
+        ]
+      },
+      "visualSignature": {
+        "silhouette": "A single grounded contact line between Orin and the injured person; the effect collapses inward toward him.",
+        "palette": [
+          "muted wound-crimson",
+          "unnatural violet edge",
+          "brief pale-white compression"
+        ],
+        "energyShape": "compressed organic rings that narrow into the contact point rather than a projectile",
+        "motionLanguage": [
+          "inward pull",
+          "concentric compression",
+          "short contained recoil"
+        ],
+        "vfxMotifs": [
+          "thin organic rings",
+          "brief subdermal pulse"
+        ],
+        "particleLanguage": [
+          "few inward-moving flecks",
+          "no explosive outward shower"
+        ],
+        "impactLanguage": "The patient's wound closes as Orin physically absorbs a contained recoil.",
+        "aftermathLanguage": "A brief unnatural trace moves beneath Orin's wrapping and fades."
+      },
+      "vfx": {
+        "energyShape": "compressed organic rings narrowing into the contact point",
+        "palette": [
+          "muted wound-crimson",
+          "unnatural violet edge",
+          "pale-white compression"
+        ],
+        "emissionAnchors": [
+          "patient injury",
+          "Orin contact palm",
+          "Orin wrapped forearm"
+        ],
+        "particleMotifs": [
+          "inward flecks",
+          "thin organic rings"
+        ],
+        "distortion": "subtle local refraction around the contact hand",
+        "travelBehavior": "all visible energy travels from the existing injury toward Orin; never away as a projectile",
+        "impactBehavior": "patient injury reduces at the same moment Orin takes a compact inward recoil",
+        "aftermathBehavior": "subdermal pulse beneath Orin's wrapping, then rapid fade"
+      },
+      "cameraLanguage": {
+        "preferredShots": [
+          "two-shot showing both patient injury and Orin contact hand",
+          "medium close-up preserving hand-to-injury geography"
+        ],
+        "preferredAngles": [
+          "profile two-shot",
+          "high three-quarter angle when hand geography must be explicit"
+        ],
+        "heroMoment": "Hold the instant the wound disappears from the patient and appears as a contained trace beneath Orin's wrapping.",
+        "avoid": [
+          "angles that hide the contact hand",
+          "framing that makes the technique look like a projectile attack"
+        ]
+      },
+      "mustNotDo": [
+        "Create a new injury.",
+        "Project healing energy at range.",
+        "Erase the cost rather than transferring it."
+      ],
+      "referenceSheet": [
+        {
+          "slot": "ACTIVATION_POSE",
+          "assetKey": "abilityref_fdbe2a9600d659196610",
+          "required": true,
+          "description": "Canonical full-body activation pose and hand placement.",
+          "assetId": null
+        },
+        {
+          "slot": "WINDUP",
+          "assetKey": "abilityref_790a8bb6b9079aeb0769",
+          "required": true,
+          "description": "Readable windup silhouette immediately before activation.",
+          "assetId": null
+        },
+        {
+          "slot": "RELEASE",
+          "assetKey": "abilityref_7d6f6c45b4b21a0410a6",
+          "required": true,
+          "description": "Canonical release pose and direction of force or effect.",
+          "assetId": null
+        },
+        {
+          "slot": "IMPACT",
+          "assetKey": "abilityref_afacd4088c0ab9356ca8",
+          "required": true,
+          "description": "Impact-state reference showing the ability's stable contact language.",
+          "assetId": null
+        },
+        {
+          "slot": "AFTERMATH",
+          "assetKey": "abilityref_50560a9c9888f104ec35",
+          "required": true,
+          "description": "Post-use visual residue and recovery state.",
+          "assetId": null
+        },
+        {
+          "slot": "VFX_ISOLATION",
+          "assetKey": "abilityref_a2603c1b68834f28c828",
+          "required": true,
+          "description": "Ability VFX isolated from character/background for shape reference.",
+          "assetId": null
+        },
+        {
+          "slot": "PALETTE",
+          "assetKey": "abilityref_133260b8a24343fedbff",
+          "required": true,
+          "description": "Canonical ability color swatches with relative emphasis.",
+          "assetId": null
+        },
+        {
+          "slot": "SHAPE_LANGUAGE",
+          "assetKey": "abilityref_feccbd5a8fc40acbdd49",
+          "required": true,
+          "description": "Canonical energy, symbol, particle, and silhouette shape language.",
+          "assetId": null
+        },
+        {
+          "slot": "MOTION_ARROWS",
+          "assetKey": "abilityref_14c7d336a1ed80d34991",
+          "required": true,
+          "description": "Directional motion guide for body, effect travel, and impact.",
+          "assetId": null
+        }
+      ]
+    }
+  },
+  "abilityScenarios": [
+    {
+      "id": "ability_consistency_266b34d",
+      "category": "ABILITY_CONSISTENCY",
+      "characterId": "char_orin",
+      "abilityId": "ability_30c0527540b7b6643943",
+      "variantId": "variant_08b360577b78611cab4f",
+      "title": "Front angle",
+      "cameraAngle": "front three-quarter",
+      "lighting": "neutral low-key lighting",
+      "withCharacterIds": [],
+      "episodeNumber": 2,
+      "promptContract": {
+        "mustPreserve": [
+          "Burden Draw",
+          "A single grounded contact line between Orin and the injured person; the effect collapses inward toward him.",
+          "compressed organic rings that narrow into the contact point rather than a projectile",
+          "muted wound-crimson",
+          "unnatural violet edge",
+          "brief pale-white compression",
+          "thin organic rings",
+          "brief subdermal pulse"
+        ],
+        "mayVary": [
+          "camera angle",
+          "shot size",
+          "lighting",
+          "background composition",
+          "secondary character placement"
+        ],
+        "referenceAssetKeys": [
+          "abilityref_fdbe2a9600d659196610",
+          "abilityref_790a8bb6b9079aeb0769",
+          "abilityref_7d6f6c45b4b21a0410a6",
+          "abilityref_afacd4088c0ab9356ca8",
+          "abilityref_50560a9c9888f104ec35",
+          "abilityref_a2603c1b68834f28c828",
+          "abilityref_133260b8a24343fedbff",
+          "abilityref_feccbd5a8fc40acbdd49",
+          "abilityref_14c7d336a1ed80d34991"
+        ]
+      },
+      "seed": 40285005
+    },
+    {
+      "id": "ability_consistency_41cc2e3a",
+      "category": "ABILITY_CONSISTENCY",
+      "characterId": "char_orin",
+      "abilityId": "ability_30c0527540b7b6643943",
+      "variantId": "variant_08b360577b78611cab4f",
+      "title": "Side angle",
+      "cameraAngle": "strict profile",
+      "lighting": "neutral low-key lighting",
+      "withCharacterIds": [],
+      "episodeNumber": 2,
+      "promptContract": {
+        "mustPreserve": [
+          "Burden Draw",
+          "A single grounded contact line between Orin and the injured person; the effect collapses inward toward him.",
+          "compressed organic rings that narrow into the contact point rather than a projectile",
+          "muted wound-crimson",
+          "unnatural violet edge",
+          "brief pale-white compression",
+          "thin organic rings",
+          "brief subdermal pulse"
+        ],
+        "mayVary": [
+          "camera angle",
+          "shot size",
+          "lighting",
+          "background composition",
+          "secondary character placement"
+        ],
+        "referenceAssetKeys": [
+          "abilityref_fdbe2a9600d659196610",
+          "abilityref_790a8bb6b9079aeb0769",
+          "abilityref_7d6f6c45b4b21a0410a6",
+          "abilityref_afacd4088c0ab9356ca8",
+          "abilityref_50560a9c9888f104ec35",
+          "abilityref_a2603c1b68834f28c828",
+          "abilityref_133260b8a24343fedbff",
+          "abilityref_feccbd5a8fc40acbdd49",
+          "abilityref_14c7d336a1ed80d34991"
+        ]
+      },
+      "seed": 1103900218
+    },
+    {
+      "id": "ability_consistency_c991b1eb",
+      "category": "ABILITY_CONSISTENCY",
+      "characterId": "char_orin",
+      "abilityId": "ability_30c0527540b7b6643943",
+      "variantId": "variant_08b360577b78611cab4f",
+      "title": "Wide shot",
+      "cameraAngle": "wide environmental",
+      "lighting": "neutral low-key lighting",
+      "withCharacterIds": [],
+      "episodeNumber": 2,
+      "promptContract": {
+        "mustPreserve": [
+          "Burden Draw",
+          "A single grounded contact line between Orin and the injured person; the effect collapses inward toward him.",
+          "compressed organic rings that narrow into the contact point rather than a projectile",
+          "muted wound-crimson",
+          "unnatural violet edge",
+          "brief pale-white compression",
+          "thin organic rings",
+          "brief subdermal pulse"
+        ],
+        "mayVary": [
+          "camera angle",
+          "shot size",
+          "lighting",
+          "background composition",
+          "secondary character placement"
+        ],
+        "referenceAssetKeys": [
+          "abilityref_fdbe2a9600d659196610",
+          "abilityref_790a8bb6b9079aeb0769",
+          "abilityref_7d6f6c45b4b21a0410a6",
+          "abilityref_afacd4088c0ab9356ca8",
+          "abilityref_50560a9c9888f104ec35",
+          "abilityref_a2603c1b68834f28c828",
+          "abilityref_133260b8a24343fedbff",
+          "abilityref_feccbd5a8fc40acbdd49",
+          "abilityref_14c7d336a1ed80d34991"
+        ]
+      },
+      "seed": 3381768683
+    },
+    {
+      "id": "ability_consistency_938f0ad4",
+      "category": "ABILITY_CONSISTENCY",
+      "characterId": "char_orin",
+      "abilityId": "ability_30c0527540b7b6643943",
+      "variantId": "variant_08b360577b78611cab4f",
+      "title": "Different lighting",
+      "cameraAngle": "front three-quarter",
+      "lighting": "cool moonlight with warm rim",
+      "withCharacterIds": [],
+      "episodeNumber": 2,
+      "promptContract": {
+        "mustPreserve": [
+          "Burden Draw",
+          "A single grounded contact line between Orin and the injured person; the effect collapses inward toward him.",
+          "compressed organic rings that narrow into the contact point rather than a projectile",
+          "muted wound-crimson",
+          "unnatural violet edge",
+          "brief pale-white compression",
+          "thin organic rings",
+          "brief subdermal pulse"
+        ],
+        "mayVary": [
+          "camera angle",
+          "shot size",
+          "lighting",
+          "background composition",
+          "secondary character placement"
+        ],
+        "referenceAssetKeys": [
+          "abilityref_fdbe2a9600d659196610",
+          "abilityref_790a8bb6b9079aeb0769",
+          "abilityref_7d6f6c45b4b21a0410a6",
+          "abilityref_afacd4088c0ab9356ca8",
+          "abilityref_50560a9c9888f104ec35",
+          "abilityref_a2603c1b68834f28c828",
+          "abilityref_133260b8a24343fedbff",
+          "abilityref_feccbd5a8fc40acbdd49",
+          "abilityref_14c7d336a1ed80d34991"
+        ]
+      },
+      "seed": 2475625172
+    },
+    {
+      "id": "ability_consistency_31855a00",
+      "category": "ABILITY_CONSISTENCY",
+      "characterId": "char_orin",
+      "abilityId": "ability_30c0527540b7b6643943",
+      "variantId": "variant_08b360577b78611cab4f",
+      "title": "Alongside another character",
+      "cameraAngle": "medium two-shot",
+      "lighting": "neutral low-key lighting",
+      "withCharacterIds": [
+        "char_mara"
+      ],
+      "episodeNumber": 2,
+      "promptContract": {
+        "mustPreserve": [
+          "Burden Draw",
+          "A single grounded contact line between Orin and the injured person; the effect collapses inward toward him.",
+          "compressed organic rings that narrow into the contact point rather than a projectile",
+          "muted wound-crimson",
+          "unnatural violet edge",
+          "brief pale-white compression",
+          "thin organic rings",
+          "brief subdermal pulse"
+        ],
+        "mayVary": [
+          "camera angle",
+          "shot size",
+          "lighting",
+          "background composition",
+          "secondary character placement"
+        ],
+        "referenceAssetKeys": [
+          "abilityref_fdbe2a9600d659196610",
+          "abilityref_790a8bb6b9079aeb0769",
+          "abilityref_7d6f6c45b4b21a0410a6",
+          "abilityref_afacd4088c0ab9356ca8",
+          "abilityref_50560a9c9888f104ec35",
+          "abilityref_a2603c1b68834f28c828",
+          "abilityref_133260b8a24343fedbff",
+          "abilityref_feccbd5a8fc40acbdd49",
+          "abilityref_14c7d336a1ed80d34991"
+        ]
+      },
+      "seed": 830822912
+    },
+    {
+      "id": "ability_consistency_d7208688",
+      "category": "ABILITY_CONSISTENCY",
+      "characterId": "char_orin",
+      "abilityId": "ability_30c0527540b7b6643943",
+      "variantId": "variant_08b360577b78611cab4f",
+      "title": "Different episode",
+      "cameraAngle": "high three-quarter",
+      "lighting": "rainy overcast daylight",
+      "withCharacterIds": [],
+      "episodeNumber": 4,
+      "promptContract": {
+        "mustPreserve": [
+          "Burden Draw",
+          "A single grounded contact line between Orin and the injured person; the effect collapses inward toward him.",
+          "compressed organic rings that narrow into the contact point rather than a projectile",
+          "muted wound-crimson",
+          "unnatural violet edge",
+          "brief pale-white compression",
+          "thin organic rings",
+          "brief subdermal pulse"
+        ],
+        "mayVary": [
+          "camera angle",
+          "shot size",
+          "lighting",
+          "background composition",
+          "secondary character placement"
+        ],
+        "referenceAssetKeys": [
+          "abilityref_fdbe2a9600d659196610",
+          "abilityref_790a8bb6b9079aeb0769",
+          "abilityref_7d6f6c45b4b21a0410a6",
+          "abilityref_afacd4088c0ab9356ca8",
+          "abilityref_50560a9c9888f104ec35",
+          "abilityref_a2603c1b68834f28c828",
+          "abilityref_133260b8a24343fedbff",
+          "abilityref_feccbd5a8fc40acbdd49",
+          "abilityref_14c7d336a1ed80d34991"
+        ]
+      },
+      "seed": 3609233032
+    }
+  ],
+  "contractChecksum": "65a93628a34e811df36271e69d9dbac41a0311c5bf2aedf7f5a76283d720e089"
+}

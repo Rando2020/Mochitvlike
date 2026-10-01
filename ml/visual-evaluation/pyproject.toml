@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mochi-visual-eval"
+version = "0.1.0"
+description = "Reproducible visual model bake-off runner for Mochitvlike"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.9,<3",
+  "Pillow>=10,<12"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+gpu = [
+  "torch>=2.6",
+  "diffusers>=0.35,<1",
+  "transformers>=4.48",
+  "accelerate>=1.2",
+  "safetensors>=0.5",
+  "huggingface_hub>=0.28",
+  "numpy>=2,<3"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["visual_eval*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
