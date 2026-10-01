@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mochi-visual-inference"
+version = "0.1.0"
+description = "Controlled GPU visual inference boundary for Mochitvlike Production Frames"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.116.1",
+  "httpx==0.28.1",
+  "pydantic==2.11.7",
+  "Pillow==11.3.0",
+  "uvicorn==0.35.0"
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.4.1"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["visual_inference*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

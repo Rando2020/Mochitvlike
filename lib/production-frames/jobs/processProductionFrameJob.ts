@@ -14,6 +14,13 @@ function errorCode(error:unknown){
  if(message.includes("MALFORMED"))return "INVALID_PROVIDER_RESPONSE";
  if(message.includes("STORAGE"))return "PRODUCTION_FRAME_STORAGE_FAILED";
  if(message.includes("NOT_CONFIGURED"))return "PRODUCTION_FRAME_PROVIDER_NOT_CONFIGURED";
+ if(message.includes("REFERENCE_CHECKSUM_MISMATCH"))return "REFERENCE_CHECKSUM_MISMATCH";
+ if(message.includes("REFERENCE_DOWNLOAD_FAILED")||message.includes("REFERENCE_DECODE_FAILED"))return "REFERENCE_INPUT_INVALID";
+ if(message.includes("MODEL_REVISION_MISMATCH"))return "MODEL_REVISION_MISMATCH";
+ if(message.includes("MODEL_NOT_SUPPORTED")||message.includes("MODEL_LOAD_FAILED"))return "MODEL_INFERENCE_UNAVAILABLE";
+ if(message.includes("GPU_OOM"))return "PRODUCTION_FRAME_GPU_OOM";
+ if(message.includes("INVALID_GENERATED_IMAGE"))return "INVALID_PROVIDER_RESPONSE";
+ if(message.includes("REFERENCE_CONDITIONING_NOT_SUPPORTED"))return "REFERENCE_CONDITIONING_NOT_SUPPORTED";
  return "INTERNAL_TRANSIENT";
 }
 export async function processProductionFrameJob(input:{supabase:SupabaseClient;jobId:string;claimToken:string;provider?:ProductionFrameProvider}):Promise<"COMPLETED"|"STALE"|"FAILED">{

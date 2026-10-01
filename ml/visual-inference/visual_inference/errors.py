@@ -1,0 +1,31 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+@dataclass
+class InferenceError(Exception):
+    code: str
+    status_code: int = 400
+
+    def __str__(self) -> str:
+        return self.code
+
+ERROR_STATUS = {
+    "MODEL_NOT_SUPPORTED": 400,
+    "MODEL_REVISION_MISMATCH": 409,
+    "MODEL_LOAD_FAILED": 503,
+    "INVALID_REQUEST": 400,
+    "REFERENCE_DOWNLOAD_FAILED": 400,
+    "REFERENCE_CHECKSUM_MISMATCH": 409,
+    "REFERENCE_DECODE_FAILED": 400,
+    "REFERENCE_CONDITIONING_NOT_SUPPORTED": 409,
+    "INFERENCE_TIMEOUT": 504,
+    "GPU_OOM": 503,
+    "INVALID_GENERATED_IMAGE": 502,
+    "UNAUTHENTICATED": 401,
+    "SERVICE_NOT_READY": 503,
+    "INTERNAL_TRANSIENT": 503,
+}
+
+def bounded_error(code: str) -> InferenceError:
+    return InferenceError(code, ERROR_STATUS.get(code, 500))
