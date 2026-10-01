@@ -7,6 +7,7 @@ import {getScript} from "@/lib/scripts/persistence/getScript";
 import {getVisualPlan} from "@/lib/visual-planning/persistence/getVisualPlan";
 import {getStoryboard,getPanelStates,materializeStoryboard} from "@/lib/storyboards/persistence";
 import {getLatestAnimatic} from "@/lib/animatics/persistence";
+import {getProductionFramesForStoryboard} from "@/lib/production-frames/persistence";
 
 export default async function StoryboardPage({params}:{params:Promise<{seriesId:string;sceneId:string;scriptId:string;planId:string;storyboardId:string}>}){
  const {seriesId,sceneId,scriptId,planId,storyboardId}=await params;const supabase=await createServerSupabaseClient();
@@ -19,8 +20,8 @@ export default async function StoryboardPage({params}:{params:Promise<{seriesId:
   if(storyboard.visual_plan_id!==planId)notFound();
   const states=await getPanelStates(supabase,user.id,storyboardId);
   const effective=materializeStoryboard(storyboard.blueprint,states);
-  const latestAnimatic=await getLatestAnimatic(supabase,user.id,storyboardId);
+  const [latestAnimatic,productionFrames]=await Promise.all([getLatestAnimatic(supabase,user.id,storyboardId),getProductionFramesForStoryboard(supabase,user.id,storyboardId)]);
   const base=`/api/series/${seriesId}/scenes/${sceneId}/scripts/${scriptId}/visual-plans/${planId}/storyboards/${storyboardId}`;
-  return <StoryboardWorkspace initialStoryboard={effective} initialStatus={storyboard.status} statusEndpoint={base} retryBase={base} script={script.script} series={series.blueprint} latestAnimatic={latestAnimatic?{id:latestAnimatic.id}:null}/>;
+  return <StoryboardWorkspace initialStoryboard={effective} initialStatus={storyboard.status} statusEndpoint={base} retryBase={base} script={script.script} series={series.blueprint} latestAnimatic={latestAnimatic?{id:latestAnimatic.id}:null} initialProductionFrames={productionFrames}/>;
  }catch{notFound();}
 }
