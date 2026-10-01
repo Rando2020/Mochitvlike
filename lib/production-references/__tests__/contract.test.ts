@@ -55,7 +55,7 @@ describe("service and immutability contract",()=>{
  it("approval checks approvalProblems",()=>expect(service).toContain("approvalProblems(record"));
  it("approval sets creator approval",()=>expect(service).toContain("creator_approved:true"));
  it("archive does not delete row",()=>expect(service).toContain('status:"ARCHIVED"'));
- it("replacement has version boundary",()=>expect(service).toContain("replacesReferenceId?2:1"));
+ it("replacement increments prior version",()=>expect(service).toContain("version=replaced.version+1"));
 });
 
 describe("creator UX contract",()=>{

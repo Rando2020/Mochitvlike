@@ -18,7 +18,7 @@ export function validateReferenceAssociation(record:ProductionReferenceRecord,se
  if(record.type==="CHARACTER"){
   if(!record.characterId||!series.cast.some(c=>c.id===record.characterId))problems.push("INVALID_CHARACTER_ASSOCIATION");
   if(!record.referenceRole)problems.push("CHARACTER_REFERENCE_ROLE_REQUIRED");
- }else if(record.characterId)problems.push("CHARACTER_ASSOCIATION_TYPE_MISMATCH");
+ }else if(record.characterId&&record.type!=="ABILITY")problems.push("CHARACTER_ASSOCIATION_TYPE_MISMATCH");
  if(record.type==="ABILITY"){
   if(!record.characterId||!record.abilityId||!record.abilitySlot)problems.push("ABILITY_ASSOCIATION_REQUIRED");
   else{
