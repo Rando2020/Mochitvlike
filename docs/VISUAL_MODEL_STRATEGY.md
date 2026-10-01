@@ -547,3 +547,21 @@ The TypeScript layer establishes:
 - reproducible report contract.
 
 The next isolated ML task should create a GPU-backed bake-off runner capable of executing the same scenarios against pinned candidate revisions and writing artifacts/results into this schema.
+
+
+## Ability consistency extension
+
+The visual benchmark category model now recognizes `ABILITY_CONSISTENCY`.
+
+Character Performance Bible data supplies future deterministic scenarios for the same original technique across:
+
+- front angle,
+- side angle,
+- wide shot,
+- different lighting,
+- a second character in frame,
+- a different Episode.
+
+These scenarios should be executed only after the visual-model runner can consume canonical ability reference assets and performance constraints.
+
+The ability benchmark should measure recurring technique identity rather than rewarding one attractive effect image.

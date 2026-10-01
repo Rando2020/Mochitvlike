@@ -1,0 +1,57 @@
+import {describe,expect,it} from "vitest";
+import {theWoundsWeKeep} from "@/lib/series/demoBlueprint";
+import {CharacterPerformanceBibleSchema,CharacterAbilitySchema,ActionBeatSchema,MovementPatternSchema} from "../schema";
+import {buildOrinPerformanceBible} from "./fixtures";
+import {validateCharacterPerformanceBible} from "../validateCharacterPerformanceBible";
+import {buildPowerSystemReferences} from "../powerSystem";
+import {buildAbilityReferenceSheetContract,REQUIRED_REFERENCE_SLOTS} from "../referenceSheet";
+import {createActionBeatId} from "../id";
+
+describe("Character Performance schema",()=>{
+ it("valid CharacterPerformanceBible parses",()=>expect(CharacterPerformanceBibleSchema.safeParse(buildOrinPerformanceBible()).success).toBe(true));
+ it("valid CharacterAbility parses",()=>expect(CharacterAbilitySchema.safeParse(buildOrinPerformanceBible().abilityKit[0]).success).toBe(true));
+ it("movement identity includes valid idle pattern",()=>expect(MovementPatternSchema.safeParse(buildOrinPerformanceBible().movementIdentity.idle).success).toBe(true));
+ it("movement identity includes valid run pattern",()=>expect(MovementPatternSchema.safeParse(buildOrinPerformanceBible().movementIdentity.run).success).toBe(true));
+ it("emotional movement exists",()=>expect(buildOrinPerformanceBible().movementIdentity.emotionalMovement.length).toBeGreaterThanOrEqual(2));
+ it("combat stance exists",()=>expect(buildOrinPerformanceBible().actionGuide.combatStance).not.toBeNull());
+ it("attack vocabulary exists",()=>expect(buildOrinPerformanceBible().actionGuide.attackVocabulary.length).toBeGreaterThan(0));
+ it("defense vocabulary exists",()=>expect(buildOrinPerformanceBible().actionGuide.defenseVocabulary.length).toBeGreaterThan(0));
+ it("signature action exists",()=>expect(buildOrinPerformanceBible().actionGuide.signatureActions[0].name).toBe("Three-Knot Field Wrap"));
+ it("signature action is non-combat ritual",()=>expect(buildOrinPerformanceBible().actionGuide.signatureActions[0].category).toBe("RITUAL"));
+ it("ability classification is SIGNATURE",()=>expect(buildOrinPerformanceBible().abilityKit[0].identity.classification).toBe("SIGNATURE"));
+ it("ability activation has hand positions",()=>expect(buildOrinPerformanceBible().abilityKit[0].activation.handPositions.length).toBeGreaterThan(0));
+ it("ability contains windup",()=>expect(buildOrinPerformanceBible().abilityKit[0].choreography.windup.length).toBeGreaterThan(0));
+ it("ability contains release",()=>expect(buildOrinPerformanceBible().abilityKit[0].choreography.release.length).toBeGreaterThan(0));
+ it("ability contains impact",()=>expect(buildOrinPerformanceBible().abilityKit[0].choreography.impact.length).toBeGreaterThan(0));
+ it("ability contains recovery",()=>expect(buildOrinPerformanceBible().abilityKit[0].choreography.recovery.length).toBeGreaterThan(0));
+ it("ability visual palette exists",()=>expect(buildOrinPerformanceBible().abilityKit[0].visualSignature.palette.length).toBeGreaterThanOrEqual(3));
+ it("ability VFX motif exists",()=>expect(buildOrinPerformanceBible().abilityKit[0].visualSignature.vfxMotifs.length).toBeGreaterThan(0));
+ it("ability camera guidance exists",()=>expect(buildOrinPerformanceBible().abilityKit[0].cameraLanguage.preferredShots.length).toBeGreaterThan(0));
+ it("ability audio signature exists",()=>expect(buildOrinPerformanceBible().abilityKit[0].audioSignature.activationCue).toBeTruthy());
+ it("ability costs exist",()=>expect(buildOrinPerformanceBible().abilityKit[0].rules.costs.length).toBeGreaterThan(0));
+ it("ability limitations exist",()=>expect(buildOrinPerformanceBible().abilityKit[0].rules.limitations.length).toBeGreaterThan(0));
+ it("ActionBeat validates",()=>expect(ActionBeatSchema.safeParse(buildOrinPerformanceBible().abilityKit[0].choreography.activation[0]).success).toBe(true));
+ it("ActionBeat IDs are deterministic",()=>expect(createActionBeatId("x","ACTION",0,"same")).toBe(createActionBeatId("x","ACTION",0,"same")));
+ it("ActionBeat ID changes with description",()=>expect(createActionBeatId("x","ACTION",0,"one")).not.toBe(createActionBeatId("x","ACTION",0,"two")));
+});
+
+describe("Cross-field performance validation",()=>{
+ it("valid fixture passes Series validation",()=>expect(validateCharacterPerformanceBible(theWoundsWeKeep,buildOrinPerformanceBible()).success).toBe(true));
+ it("rejects invalid character reference",()=>{const b=buildOrinPerformanceBible();b.characterId="missing";expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("rejects ability bound to different character",()=>{const b=buildOrinPerformanceBible();b.abilityKit[0].characterId="char_mara";expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("rejects invalid canon unlock reference",()=>{const b=buildOrinPerformanceBible();b.abilityKit[0].continuity.unlockedAtCanonId="missing";expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("rejects duplicate ability IDs",()=>{const b=buildOrinPerformanceBible();b.abilityKit.push(structuredClone(b.abilityKit[0]));expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("rejects duplicate variant IDs",()=>{const b=buildOrinPerformanceBible();const a=b.abilityKit[0];a.variants[1].id=a.variants[0].id;expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("rejects variant belonging to another ability",()=>{const b=buildOrinPerformanceBible();b.abilityKit[0].variants[0].abilityId="other";expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("rejects current variant from another ability",()=>{const b=buildOrinPerformanceBible();b.abilityKit[0].continuity.currentVariantId="missing";expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("requires current variant be highest version",()=>{const b=buildOrinPerformanceBible();b.abilityKit[0].continuity.currentVariantId=b.abilityKit[0].variants[0].id;expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("rejects unknown known-by character",()=>{const b=buildOrinPerformanceBible();b.abilityKit[0].continuity.knownByCharacterIds.push("missing");expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("rejects invalid power-system reference",()=>{const b=buildOrinPerformanceBible();b.abilityKit[0].powerSystemBinding!.refIds=["wrong"];expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("rejects power ability if Series has no power system",()=>{const s=structuredClone(theWoundsWeKeep);s.world.powerSystem={exists:false,name:null,summary:null,rules:[],costs:[],limitations:[]};expect(validateCharacterPerformanceBible(s,buildOrinPerformanceBible()).success).toBe(false);});
+ it("mundane action guide works without power system",()=>{const s=structuredClone(theWoundsWeKeep),b=buildOrinPerformanceBible();s.world.powerSystem={exists:false,name:null,summary:null,rules:[],costs:[],limitations:[]};b.abilityKit=[];expect(validateCharacterPerformanceBible(s,b).success).toBe(true);});
+ it("reference sheet includes every canonical slot",()=>{const a=buildOrinPerformanceBible().abilityKit[0];expect(new Set(a.referenceSheet.map(x=>x.slot))).toEqual(new Set(REQUIRED_REFERENCE_SLOTS));});
+ it("reference sheet contract is deterministic",()=>{const a=buildOrinPerformanceBible().abilityKit[0];expect(buildAbilityReferenceSheetContract(a.id)).toEqual(buildAbilityReferenceSheetContract(a.id));});
+ it("rejects non-deterministic reference key",()=>{const b=buildOrinPerformanceBible();b.abilityKit[0].referenceSheet[0].assetKey="wrong";expect(validateCharacterPerformanceBible(theWoundsWeKeep,b).success).toBe(false);});
+ it("power-system references are deterministic",()=>expect(buildPowerSystemReferences(theWoundsWeKeep)).toEqual(buildPowerSystemReferences(theWoundsWeKeep)));
+ it("fixture power binding references all existing world power constraints",()=>expect(buildOrinPerformanceBible().abilityKit[0].powerSystemBinding?.refIds.length).toBe(buildPowerSystemReferences(theWoundsWeKeep).length));
+});

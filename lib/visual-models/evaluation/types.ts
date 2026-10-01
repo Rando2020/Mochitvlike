@@ -1,4 +1,4 @@
-export type BenchmarkCategory="CHARACTER_IDENTITY"|"MULTI_CHARACTER"|"POSE_COMPOSITION"|"CONTINUITY"|"ANIME"|"MANGA";
+export type BenchmarkCategory="CHARACTER_IDENTITY"|"MULTI_CHARACTER"|"POSE_COMPOSITION"|"CONTINUITY"|"ANIME"|"MANGA"|"ABILITY_CONSISTENCY";
 export type BenchmarkCharacter={
   id:"kael"|"lyra"|"mira"|"vesper";
   name:string;
