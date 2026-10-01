@@ -144,7 +144,7 @@ export function StoryboardWorkspace({initialStoryboard,initialStatus,statusEndpo
       {frame&&(frame.generation?.status==="PENDING"||frame.generation?.status==="GENERATING")?<button type="button" disabled>Generating…</button>:null}
       {frameReady?<button type="button" disabled>Production Frame Ready</button>:null}
       {frame?.generation?.status==="FAILED"?<button type="button" onClick={()=>void retryFrame(panel.id)} disabled={frameBusy===panel.id}>{frameBusy===panel.id?"Retrying…":"Retry Production Frame"}</button>:null}
-      {frameErrors[panel.id]?<p role="alert">{frameErrors[panel.id]}</p>:null}
+      {frameErrors[panel.id]?<div role="alert">{frameErrors[panel.id]==="MISSING_PRODUCTION_REFERENCE"?<><p>{panel.characterIds.map(id=>cast.get(id)??id).join(" and ")||"This shot"} needs approved production references before this frame can be rendered.</p><a href={`/series/${storyboard.seriesId}/references`}>Open Reference Studio</a></>:<p>{frameErrors[panel.id]}</p>}</div>:null}
      </div>
     </article>;
    })}

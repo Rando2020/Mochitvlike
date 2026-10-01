@@ -198,6 +198,7 @@ export function SeriesStudio({
             <div className={styles.tabScene} data-testid="cast-tab">
               {header}
               <CastStrip cast={blueprint.cast} onSelect={setSelectedCast} />
+              <p><a href={`/series/${seriesId}/references`}>Open Production Reference Studio</a></p>
               <section className={styles.castRoster}>
                 {blueprint.cast.map((member) => (
                   <button type="button" key={member.id} onClick={() => setSelectedCast(member)}>
