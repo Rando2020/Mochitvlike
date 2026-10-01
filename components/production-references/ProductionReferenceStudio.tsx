@@ -21,7 +21,9 @@ export function ProductionReferenceStudio({seriesId,blueprint,bibles,initialRefe
   const source=(data.get("source")||"OWNED") as ReferenceProvenance["source"],type=String(data.get("type")||"CHARACTER");
   const metadata:any={type,source,modelCompatibility:[],provenance:defaultProvenance(source),notes:String(data.get("notes")||"")||null};
   metadata.provenance.creatorNameOrId=String(data.get("creatorNameOrId")||"");
-  metadata.provenance.licenseIdOrDescription=String(data.get("license")||"");\n  metadata.provenance.permissions={productionUse:data.get("productionUse")==="on",commercialUse:data.get("commercialUse")==="on",modelConditioning:data.get("modelConditioning")==="on",redistribution:data.get("redistribution")==="on"};\n  metadata.provenance.projectSpecific=source==="SYNTHETIC"?data.get("projectSpecific")==="on":null;
+  metadata.provenance.licenseIdOrDescription=String(data.get("license")||"");
+  metadata.provenance.permissions={productionUse:data.get("productionUse")==="on",commercialUse:data.get("commercialUse")==="on",modelConditioning:data.get("modelConditioning")==="on",redistribution:data.get("redistribution")==="on"};
+  metadata.provenance.projectSpecific=source==="SYNTHETIC"?data.get("projectSpecific")==="on":null;
   if(type==="CHARACTER"){metadata.characterId=member.id;metadata.referenceRole=String(data.get("referenceRole")||"PRIMARY_IDENTITY");}
   if(type==="ABILITY"){metadata.characterId=member.id;metadata.abilityId=String(data.get("abilityId"));metadata.abilitySlot=String(data.get("abilitySlot"));}
   const body=new FormData();body.set("file",file);body.set("metadata",JSON.stringify(metadata));

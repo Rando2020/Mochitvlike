@@ -5,7 +5,8 @@ import {HttpProductionFrameProvider,type ProductionFrameProvider} from "../provi
 import {validateProductionFrameOutput} from "../quality";
 import {removeProductionFrame,uploadProductionFrame} from "../storage";
 import {VisualModelRegistry} from "@/lib/visual-models/registry";
-import {assertProductionReference} from "../references";\nimport {materializeRuntimeReferenceUrls} from "@/lib/production-references/runtime";
+import {assertProductionReference} from "../references";
+import {materializeRuntimeReferenceUrls} from "@/lib/production-references/runtime";
 
 function errorCode(error:unknown){
  const message=error instanceof Error?error.message:"";
@@ -37,7 +38,8 @@ export async function processProductionFrameJob(input:{supabase:SupabaseClient;j
   const provider=input.provider??new HttpProductionFrameProvider();
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),150000);
   let generated;
-  const runtimeSpec=await materializeRuntimeReferenceUrls(input.supabase,spec);\n  try{generated=await provider.generate(runtimeSpec,{signal:controller.signal});}finally{clearTimeout(timeout);}
+  const runtimeSpec=await materializeRuntimeReferenceUrls(input.supabase,spec);
+  try{generated=await provider.generate(runtimeSpec,{signal:controller.signal});}finally{clearTimeout(timeout);}
   if(stale)return "STALE";
   const quality=validateProductionFrameOutput(spec,generated);
   if(!quality.ok)throw new Error(quality.code);
