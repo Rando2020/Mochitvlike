@@ -16,6 +16,8 @@ def settings(**overrides):
         dev_model_id="animagine-xl-4.0",allowed_reference_hosts=("assets.example.com",),
         max_reference_bytes=10*1024*1024,max_output_bytes=25*1024*1024,
         inference_timeout_seconds=5,max_concurrency=1,model_cache_dir="/tmp/models",eager_model_load=False,
+        reference_conditioning_adapter_id="ip-adapter-plus-sdxl-vith",reference_conditioning_adapter_revision="9bf28b38530e55ffa91c6d82e5161a982c22f284",identity_conditioning_scale=0.65,
+        vfx_conditioning_scale=0.30,color_conditioning_scale=0.20,max_conditioning_references=4,
     )
     values.update(overrides);return Settings(**values)
 
