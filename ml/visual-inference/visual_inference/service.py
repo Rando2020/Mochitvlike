@@ -76,12 +76,12 @@ class VisualInferenceService:
         async with self._semaphore:
             try:
                 generated=await asyncio.wait_for(
-                    asyncio.to_thread(backend.generate,prompt=request.prompt,width=spec.output.width,height=spec.output.height,seed=spec.seed,references=references,development_override=spec.model.developmentOverride),
+                    asyncio.to_thread(backend.generate,prompt=request.prompt,width=spec.output.width,height=spec.output.height,seed=spec.seed,references=references,development_override=spec.model.developmentOverride,spec=spec),
                     timeout=self.settings.inference_timeout_seconds,
                 )
             except TimeoutError:
                 raise bounded_error("INFERENCE_TIMEOUT") from None
         validate_generated_image(generated,spec.output.width,spec.output.height,self.settings.max_output_bytes)
         duration_ms=round((time.monotonic()-start)*1000)
-        safe_event("visual_inference_request_completed",requestId=request_id,modelId=spec.model.modelId,revision=spec.model.revision,architecture=spec.model.architecture,width=spec.output.width,height=spec.output.height,referenceCount=len(spec.references),durationMs=duration_ms,status="COMPLETED",backend=generated.metadata.get("backend"),conditioning=generated.metadata.get("conditioning"),gpuType=os.getenv("MODAL_GPU_TYPE") or os.getenv("GPU_TYPE"))
+        safe_event("visual_inference_request_completed",requestId=request_id,modelId=spec.model.modelId,revision=spec.model.revision,architecture=spec.model.architecture,width=spec.output.width,height=spec.output.height,referenceCount=len(spec.references),durationMs=duration_ms,status="COMPLETED",backend=generated.metadata.get("backend"),conditioning=generated.metadata.get("conditioning"),adapterId=generated.metadata.get("adapterId"),adapterRevision=generated.metadata.get("adapterRevision"),gpuType=os.getenv("MODAL_GPU_TYPE") or os.getenv("GPU_TYPE"))
         return GenerateResponse(imageBase64=base64.b64encode(generated.bytes).decode("ascii"),mimeType="image/png",width=generated.width,height=generated.height,taskId=request_id)

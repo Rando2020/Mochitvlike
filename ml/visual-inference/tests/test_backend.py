@@ -31,12 +31,12 @@ def test_png_returned():
 def test_backend_factory_uses_test_only_when_requested():
     assert isinstance(create_backend(MODEL,settings(backend="test")),DeterministicTestBackend)
 
-def test_diffusers_production_references_fail_without_adapter():
+def test_diffusers_reference_conditioning_requires_spec():
     class Loaded(DiffusersSDXLBackend):
         def load(self):self.loaded=True
     b=Loaded(MODEL,settings(backend="diffusers"));b.loaded=True
-    with pytest.raises(InferenceError,match="REFERENCE_CONDITIONING_NOT_SUPPORTED"):
-        b.generate(prompt="x",width=256,height=256,seed=1,references=[object()],development_override=False)
+    with pytest.raises(InferenceError,match="REFERENCE_CONDITIONING_FAILED"):
+        b.generate(prompt="x",width=256,height=256,seed=1,references=[object()],development_override=True)
 
 def test_model_cache_object_is_reusable():
     b=DeterministicTestBackend(MODEL,settings());b.load();before=id(b);b.load();assert id(b)==before and b.loaded

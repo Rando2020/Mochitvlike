@@ -40,6 +40,9 @@ def test_strict_top_level_schema(auth_headers):
 def test_strict_spec_schema(auth_headers):
     c,_=client();body=payload();body["spec"]["repository"]="evil/repo";assert c.post("/v1/production-frame",headers=auth_headers,json=body).status_code==400
 
+def test_arbitrary_adapter_input_impossible(auth_headers):
+    c,_=client();body=payload();body["spec"]["adapterId"]="evil";assert c.post("/v1/production-frame",headers=auth_headers,json=body).status_code==400
+
 def test_arbitrary_filesystem_input_impossible(auth_headers):
     c,_=client();body=payload();body["spec"]["model"]["path"]="/tmp/x";assert c.post("/v1/production-frame",headers=auth_headers,json=body).status_code==400
 

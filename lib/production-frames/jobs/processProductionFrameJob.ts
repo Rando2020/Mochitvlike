@@ -21,6 +21,11 @@ function errorCode(error:unknown){
  if(message.includes("GPU_OOM"))return "PRODUCTION_FRAME_GPU_OOM";
  if(message.includes("INVALID_GENERATED_IMAGE"))return "INVALID_PROVIDER_RESPONSE";
  if(message.includes("REFERENCE_CONDITIONING_NOT_SUPPORTED"))return "REFERENCE_CONDITIONING_NOT_SUPPORTED";
+ if(message.includes("MULTI_CHARACTER_REFERENCE_CONDITIONING_NOT_SUPPORTED"))return "MULTI_CHARACTER_REFERENCE_CONDITIONING_NOT_SUPPORTED";
+ if(message.includes("IDENTITY_REFERENCE_REQUIRED"))return "IDENTITY_REFERENCE_REQUIRED";
+ if(message.includes("REFERENCE_CHARACTER_MISMATCH"))return "REFERENCE_CHARACTER_MISMATCH";
+ if(message.includes("ADAPTER_NOT_SUPPORTED")||message.includes("ADAPTER_REVISION_MISMATCH")||message.includes("ADAPTER_LOAD_FAILED"))return "REFERENCE_ADAPTER_UNAVAILABLE";
+ if(message.includes("REFERENCE_CONDITIONING_FAILED")||message.includes("CONDITIONING_QUALITY_FAILED"))return "REFERENCE_CONDITIONING_FAILED";
  return "INTERNAL_TRANSIENT";
 }
 export async function processProductionFrameJob(input:{supabase:SupabaseClient;jobId:string;claimToken:string;provider?:ProductionFrameProvider}):Promise<"COMPLETED"|"STALE"|"FAILED">{
