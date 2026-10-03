@@ -1026,3 +1026,20 @@
     padding-inline: 36px;
   }
 }
+
+.guideCard {
+  padding: clamp(20px, 4vw, 32px);
+  border: 1px solid rgba(172, 157, 255, 0.35);
+  border-radius: 24px;
+  background: linear-gradient(130deg, rgba(141, 120, 255, 0.12), transparent), var(--surface);
+}
+.guideCard h2 { margin: 12px 0; font-size: clamp(1.5rem, 5vw, 2.2rem); }
+.guideCard p { color: var(--muted-strong); line-height: 1.6; max-width: 760px; }
+.guideProgress, .guideNote { font-size: 0.85rem; }
+.guideChange { border-left: 2px solid #ac9dff; padding-left: 16px; margin: 20px 0; }
+.guideChange span { font-size: 0.8rem; color: #c9c0ff; font-weight: 700; }
+.guideActions { display: flex; flex-wrap: wrap; gap: 10px; }
+.guideActions button { min-height: 48px; flex: 1 1 220px; }
+.guideActions button:disabled, .compactButton:disabled { opacity: 0.6; cursor: wait; }
+.guideActions button:focus-visible { outline: 2px solid #c9c0ff; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .tabScene { animation: none; } }
