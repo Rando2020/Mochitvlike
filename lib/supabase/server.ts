@@ -1,7 +1,9 @@
+import { assertDatabaseIsolation } from "@/lib/operations/environment";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export async function createServerSupabaseClient() {
+  assertDatabaseIsolation();
   const cookieStore = await cookies();
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

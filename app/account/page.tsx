@@ -16,8 +16,8 @@ export default async function AccountPage({ searchParams }: {
       <p>Signed in as {user.email}</p>
       <p>Creator ID: <code>{user.id}</code></p>
       {params.error === "signout" && <p role="alert">Unable to sign out. Please try again.</p>}
-      <p><Link href="/api/series" prefetch={false}>View your saved series</Link></p>
-      <p><Link href="/series/demo">Explore the demo</Link></p>
+      <p><Link href="/studio" prefetch={false}>Open your saved shows</Link></p>
+      <p><Link href="/">Launch page</Link></p>
       <form action={signOut}><button type="submit">Sign out</button></form>
     </main>
   );

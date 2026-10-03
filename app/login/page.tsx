@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: {
         <input id="password" name="password" type="password" autoComplete="current-password" required maxLength={4096} />
         <button type="submit">Sign in</button>
       </form>
-      <p><Link href="/series/demo">Explore the demo</Link></p>
+      <p><Link href="/">Back to launch page</Link></p>
     </main>
   );
 }
