@@ -6,7 +6,7 @@ create table if not exists public.voice_casts (
   episode_assembly_id uuid not null references public.episode_assemblies(id) on delete cascade,
   creator_id uuid not null references auth.users(id) on delete cascade,
   version integer not null check(version>=1),
-  cast jsonb not null,
+  "cast" jsonb not null,
   cast_schema_version text not null default '1.0',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -118,7 +118,7 @@ begin
   if v_job_count<>jsonb_array_length(p_jobs) then raise exception 'DIALOGUE_JOB_PAYLOAD_INVALID'; end if;
 
   begin
-    insert into public.voice_casts(id,series_id,episode_assembly_id,creator_id,version,cast)
+    insert into public.voice_casts(id,series_id,episode_assembly_id,creator_id,version,"cast")
     values(p_voice_cast_id,p_series_id,p_episode_assembly_id,p_creator_id,p_version,p_cast);
 
     insert into public.dialogue_audio_plans(id,series_id,episode_assembly_id,voice_cast_id,creator_id,version,status,plan)
