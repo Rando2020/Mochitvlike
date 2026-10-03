@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SceneSummary } from "@/lib/scenes/types";
 import type { CastMember, SeriesBlueprint, StudioFeatureType } from "@/lib/series/types";
@@ -10,6 +10,8 @@ import { CastStrip } from "./CastStrip";
 import { ClarificationCard, type ClarificationChoice } from "./ClarificationCard";
 import { CreativeDNA } from "./CreativeDNA";
 import { EpisodeHero } from "./EpisodeHero";
+import { StudioGuide } from "./StudioGuide";
+import { selectActiveScenes } from "./studioGuide";
 import { SeriesHeader } from "./SeriesHeader";
 import { StoryEnginePanel } from "./StoryEnginePanel";
 import { StudioFeatureGrid } from "./StudioFeatureGrid";
@@ -64,13 +66,16 @@ export function SeriesStudio({
   const [activeTab, setActiveTab] = useState<StudioTab>("studio");
   const [selectedCast, setSelectedCast] = useState<CastMember | null>(null);
   const [expandedBeatId, setExpandedBeatId] = useState<string | null>(blueprint.episodeOne.beats[0]?.id ?? null);
+  const sceneRequestPending = useRef(false);
+  const [scenePending, setScenePending] = useState(false);
+  const activeScenes = useMemo(() => selectActiveScenes(blueprint, sceneSummaries), [blueprint, sceneSummaries]);
   const [sceneError, setSceneError] = useState<string | null>(null);
 
   const primaryFeatures = useMemo(() => selectPrimaryFeatures(blueprint), [blueprint]);
   const secondaryFeatures = useMemo(() => selectSecondaryFeatures(blueprint), [blueprint]);
   const sceneByBeat = useMemo(
-    () => new Map(sceneSummaries.map((scene) => [scene.sourceBeatId, scene])),
-    [sceneSummaries]
+    () => new Map(activeScenes.map((scene) => [scene.sourceBeatId, scene])),
+    [activeScenes]
   );
 
   const goToEpisode = () => {
@@ -88,36 +93,41 @@ export function SeriesStudio({
   };
 
   const handleScene = async (beatId: string) => {
-    if (onDevelopScene) {
-      await onDevelopScene(beatId);
-      return;
-    }
-
+    if (sceneRequestPending.current) return;
+    setSceneError(null);
     const existing = sceneByBeat.get(beatId);
-    if (existing) {
+    if (existing && !onDevelopScene) {
       router.push(`/series/${seriesId}/scenes/${existing.id}`);
       return;
     }
-
-    setSceneError(null);
-
-    const response = await fetch(`/api/series/${seriesId}/scenes/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        episodeKey: "episodeOne",
-        beatId
-      })
-    });
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      setSceneError(body?.error?.code ?? "SCENE_GENERATION_FAILED");
+    if (seriesId === "demo" && !onDevelopScene) {
+      goToEpisode();
       return;
     }
-
-    const body = await response.json() as { scene: { id: string } };
-    router.push(`/series/${seriesId}/scenes/${body.scene.id}`);
+    sceneRequestPending.current = true;
+    setScenePending(true);
+    try {
+      if (onDevelopScene) {
+        await onDevelopScene(beatId);
+        return;
+      }
+      const response = await fetch(`/api/series/${seriesId}/scenes/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ episodeKey: "episodeOne", beatId })
+      });
+      if (!response.ok) throw new Error("SCENE_GENERATION_FAILED");
+      const body = await response.json() as { scene?: { id?: unknown } };
+      if (typeof body.scene?.id !== "string" || !/^[0-9a-f-]{36}$/i.test(body.scene.id)) {
+        throw new Error("INVALID_SCENE_RESPONSE");
+      }
+      router.push(`/series/${seriesId}/scenes/${body.scene.id}`);
+    } catch {
+      setSceneError("SCENE_GENERATION_FAILED");
+    } finally {
+      sceneRequestPending.current = false;
+      setScenePending(false);
+    }
   };
 
   const header = (
@@ -132,12 +142,13 @@ export function SeriesStudio({
     <>
       {sceneError ? (
         <div className={styles.contextualEmpty} role="alert">
-          This scene could not be developed safely yet. Try again when the story context is available.
+          We could not open or create your scene plan. Check your connection and try again. If a plan was saved, reload the Studio to continue it.
         </div>
       ) : null}
       <EpisodeHero
         blueprint={blueprint}
-        sceneSummaries={sceneSummaries}
+        sceneSummaries={activeScenes}
+        pending={scenePending}
         expandedBeatId={expandedBeatId}
         onToggleBeat={toggleBeat}
         onDevelopScene={handleScene}
@@ -170,6 +181,8 @@ export function SeriesStudio({
           {activeTab === "studio" ? (
             <div className={styles.tabScene} data-testid="studio-tab">
               {header}
+              <StudioGuide blueprint={blueprint} scenes={activeScenes} pending={scenePending}
+                preview={seriesId === "demo" && !onDevelopScene} onScene={handleScene} onReview={goToEpisode} />
               <ClarificationCard blueprint={blueprint} onAnswer={onClarificationAnswer} />
               <div className={styles.dashboardGrid}>
                 <div className={styles.dashboardPrimary}>

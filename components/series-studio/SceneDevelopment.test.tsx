@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { theWoundsWeKeep } from "@/lib/series/demoBlueprint";
 import { SeriesStudio } from "./SeriesStudio";
@@ -25,7 +25,7 @@ describe("Series Studio scene development", () => {
     expect(screen.getByText("Hook · planned")).toBeInTheDocument();
   });
 
-  it("calls the scene-development flow for an unplanned beat", () => {
+  it("calls the scene-development flow for an unplanned beat", async () => {
     const develop = vi.fn();
 
     render(
@@ -38,7 +38,7 @@ describe("Series Studio scene development", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Develop Scene" }));
-    expect(develop).toHaveBeenCalledWith("beat_1");
+    await waitFor(() => expect(develop).toHaveBeenCalledWith("beat_1"));
   });
 
   it("describes episode progress as planned rather than rendered", () => {
