@@ -1,0 +1,15 @@
+.editor { max-width: 850px; margin: 0 auto; padding: 32px 20px 80px; color: var(--text); }
+.editor p, .editor li { line-height: 1.65; }
+.editor section { border: 1px solid var(--border); padding: 20px; border-radius: 16px; margin: 20px 0; background: var(--surface-soft); }
+.eyebrow { color: #c4b8ff; font-size: .8rem; font-weight: 750; letter-spacing: .06em; }
+.editor button { min-height: 46px; padding: 12px 18px; background: var(--accent-soft); color: var(--text); border: 1px solid var(--border-strong); border-radius: 12px; cursor: pointer; font: inherit; }
+.editor button:disabled { opacity: .5; cursor: default; }
+.editor :is(button,a,input):focus-visible { outline: 2px solid #c9c0ff; outline-offset: 4px; }
+.tableScroll { overflow-x: auto; }
+.editor table { width: 100%; border-collapse: collapse; }
+.editor th, .editor td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.editor caption { text-align: left; padding-bottom: 12px; }
+.warning { border-left: 3px solid #e5b56b; padding: 12px; }
+.ack { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; padding: 16px 0; line-height: 1.5; }
+.ack input { width: 20px; height: 20px; flex-shrink: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }

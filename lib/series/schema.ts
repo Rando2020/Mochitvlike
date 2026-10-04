@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CharacterDirectionSchema } from "@/lib/character-direction/schema";
+import { DirectionHistorySchema } from "@/lib/character-direction/history";
 
 const short = z.string().trim().min(1).max(300);
 const medium = z.string().trim().min(1).max(1200);
@@ -216,7 +217,8 @@ export const SeriesBlueprintGenerationSchema = z.object({
 // attaches creator-selected direction, so model output cannot author tag metadata.
 export const SeriesBlueprintSchema = SeriesBlueprintGenerationSchema.extend({
   cast: z.array(SeriesBlueprintGenerationSchema.shape.cast.element.extend({
-    generationDirection: CharacterDirectionSchema.optional()
+    generationDirection: CharacterDirectionSchema.optional(),
+    generationDirectionHistory: DirectionHistorySchema.optional()
   })).min(3).max(6)
 });
 

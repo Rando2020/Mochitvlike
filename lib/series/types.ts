@@ -1,4 +1,5 @@
 import type { CharacterDirection } from "@/lib/character-direction/schema";
+import type { DirectionHistory } from "@/lib/character-direction/history";
 
 export type Genre =
   | "ACTION"
@@ -51,6 +52,7 @@ export type StudioFeatureType =
 export type StudioFeaturePriority = "PRIMARY" | "SECONDARY";
 
 export type CastMember = {
+  generationDirectionHistory?: DirectionHistory;
   generationDirection?: CharacterDirection;
   id: string;
   role: CastRole;
