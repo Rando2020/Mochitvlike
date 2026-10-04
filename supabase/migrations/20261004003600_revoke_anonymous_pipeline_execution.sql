@@ -1,0 +1,35 @@
+-- Hosted Supabase can grant EXECUTE directly to anon through default privileges.
+-- Revoking PUBLIC does not revoke that separate grant. Preserve server and owner retry access.
+revoke execute on function public.claim_next_storyboard_panel_generation(integer) from anon;
+revoke execute on function public.renew_storyboard_panel_generation_lease(uuid,uuid,integer) from anon;
+revoke execute on function public.complete_storyboard_panel_generation(uuid,uuid,text,text,integer,integer,text) from anon;
+revoke execute on function public.fail_storyboard_panel_generation(uuid,uuid,text) from anon;
+revoke execute on function public.retry_storyboard_panel_generation(uuid) from anon;
+revoke execute on function public.create_storyboard_with_panel_jobs(uuid,uuid,uuid,uuid,uuid,uuid,integer,jsonb,jsonb) from anon;
+revoke execute on function public.create_scene_animatic(uuid,uuid,uuid,uuid,uuid,uuid,uuid,integer,jsonb) from anon;
+revoke execute on function public.create_motion_plan_with_jobs(uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,integer,jsonb,jsonb) from anon;
+revoke execute on function public.claim_next_motion_clip_generation(integer) from anon;
+revoke execute on function public.renew_motion_clip_generation_lease(uuid,uuid,integer) from anon;
+revoke execute on function public.set_motion_provider_task(uuid,uuid,text) from anon;
+revoke execute on function public.complete_motion_clip_generation(uuid,uuid,text,text,numeric,integer,integer,text) from anon;
+revoke execute on function public.fail_motion_clip_generation(uuid,uuid,text) from anon;
+revoke execute on function public.retry_motion_clip_generation(uuid) from anon;
+revoke execute on function public.create_episode_assembly(uuid,uuid,uuid,text,integer,jsonb,jsonb) from anon;
+revoke execute on function public.create_dialogue_audio_plan(uuid,uuid,uuid,uuid,uuid,integer,jsonb,jsonb,jsonb) from anon;
+revoke execute on function public.claim_next_dialogue_audio_generation(integer) from anon;
+revoke execute on function public.renew_dialogue_audio_generation_lease(uuid,uuid,integer) from anon;
+revoke execute on function public.complete_dialogue_audio_generation(uuid,uuid,text,text,numeric,integer,integer,text,numeric,text) from anon;
+revoke execute on function public.fail_dialogue_audio_generation(uuid,uuid,text) from anon;
+revoke execute on function public.retry_dialogue_audio_generation(uuid) from anon;
+revoke execute on function public.create_sound_design_plan(uuid,uuid,uuid,uuid,uuid,integer,jsonb,jsonb) from anon;
+revoke execute on function public.claim_next_sound_generation(integer) from anon;
+revoke execute on function public.renew_sound_generation_lease(uuid,uuid,integer) from anon;
+revoke execute on function public.complete_sound_generation(uuid,uuid,text,text,text,numeric,text) from anon;
+revoke execute on function public.fail_sound_generation(uuid,uuid,text) from anon;
+revoke execute on function public.retry_sound_generation(uuid) from anon;
+revoke execute on function public.create_production_frame_with_generation(uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,integer,boolean,text,text,text,text,jsonb,text,text,bigint) from anon;
+revoke execute on function public.claim_next_production_frame_generation(integer) from anon;
+revoke execute on function public.renew_production_frame_generation_lease(uuid,uuid,integer) from anon;
+revoke execute on function public.complete_production_frame_generation(uuid,uuid,text,text,text,integer,integer,text) from anon;
+revoke execute on function public.fail_production_frame_generation(uuid,uuid,text) from anon;
+revoke execute on function public.retry_production_frame_generation(uuid) from anon;
