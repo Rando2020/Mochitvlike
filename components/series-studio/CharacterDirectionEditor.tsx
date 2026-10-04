@@ -55,7 +55,7 @@ export function CharacterDirectionEditor({ seriesId, member, archived }: { serie
     <p>Your character's name, goals, story, and original description stay unchanged. No assets are regenerated, deleted, or unapproved by this editor.</p>
     {archived ? <p role="status">This series is archived. Restore it before editing.</p> : null}
     {saved ? <section role="status"><h2>Direction saved</h2><p>Future preparation uses these choices. Previous outputs and approved references remain unchanged.</p>
-      {review?.visualChanged ? <p>New production frames are paused until revision-bound reference review is implemented. Uploading another reference alone does not clear this pause.</p> : null}
+      {review?.visualChanged ? <p>New production frames are paused until you <Link href={`/series/${encodeURIComponent(seriesId)}/cast/${encodeURIComponent(member.id)}/reference-binding`}>review and approve an identity reference for this revision</Link>. Uploading another reference alone does not clear this pause.</p> : null}
       <Link href={`/series/${encodeURIComponent(seriesId)}`}>Return to studio</Link></section> : <>
       <CharacterDirectionControls existing value={direction} disabled={busy || archived || !!review} onChange={value => { setDirection(value); setSaved(false); }} />
       {!review ? <button type="button" disabled={busy || archived} onClick={() => void submit("review")}>{busy ? "Checking production work…" : "Review changes"}</button> : <section aria-labelledby="direction-review-heading">
@@ -66,7 +66,7 @@ export function CharacterDirectionEditor({ seriesId, member, archived }: { serie
         <p>Counts are conservative, series-wide candidates, not proof that every item uses this character. References and performance bibles are character-specific. All remain preserved, including queued work.</p>
         <ul>{review.impact.map(item => <li key={item.label}>{item.label}: {item.count}</li>)}</ul>
         <p>Personality changes guide newly prepared scenes and scripts. Voice changes guide newly prepared voice casts and speech. Existing plans and queued jobs keep their saved inputs; revise them explicitly if needed.</p>
-        {review.visualChanged ? <p className={styles.warning}>Body or clothing changed. Approved references will not be overwritten. New production frames for this character will be blocked until revision-bound reference review is implemented.</p> : null}
+        {review.visualChanged ? <p className={styles.warning}>Body or clothing changed. Approved references will not be overwritten. New production frames for this character will be blocked until you review and approve an identity binding for the saved visual revision.</p> : null}
         <label className={styles.ack}><input type="checkbox" checked={acknowledged} disabled={busy} onChange={event => setAcknowledged(event.target.checked)} />I reviewed the changes and impact. Keep all existing production work.</label>
         <div className={styles.actions}><button type="button" disabled={busy || !acknowledged || !review.changes.length} onClick={() => void submit("save")}>{busy ? "Saving…" : uncertain ? "Retry reviewed save" : "Save direction"}</button>
           <button type="button" disabled={busy || uncertain} onClick={() => { setReview(null); setAcknowledged(false); }}>Back to edit</button></div>

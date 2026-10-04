@@ -1,5 +1,6 @@
 import type { CharacterDirection } from "@/lib/character-direction/schema";
 import type { DirectionHistory } from "@/lib/character-direction/history";
+import type { ReferenceBindingHistory } from "@/lib/character-direction/reference-binding";
 
 export type Genre =
   | "ACTION"
@@ -52,6 +53,7 @@ export type StudioFeatureType =
 export type StudioFeaturePriority = "PRIMARY" | "SECONDARY";
 
 export type CastMember = {
+  referenceBindingHistory?: ReferenceBindingHistory;
   generationDirectionHistory?: DirectionHistory;
   generationDirection?: CharacterDirection;
   id: string;

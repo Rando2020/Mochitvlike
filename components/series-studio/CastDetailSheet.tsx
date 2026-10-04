@@ -31,6 +31,7 @@ export function CastDetailSheet({
         <h2 id="cast-detail-title">{member.name}</h2>
         <p className={styles.sheetSummary}>{member.summary}</p>
         {seriesId && seriesId !== "demo" ? <Link href={`/series/${encodeURIComponent(seriesId)}/cast/${encodeURIComponent(member.id)}/direction`}>Edit generation direction</Link> : null}
+        {seriesId && seriesId !== "demo" ? <p><Link href={`/series/${encodeURIComponent(seriesId)}/cast/${encodeURIComponent(member.id)}/reference-binding`}>Review identity reference</Link></p> : null}
         {member.generationDirection ? <section><h3>Generation direction</h3><CharacterDirectionSummary direction={member.generationDirection} /></section> : null}
         <dl className={styles.characterGoals}>
           <div>

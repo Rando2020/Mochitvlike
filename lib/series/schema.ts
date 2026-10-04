@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CharacterDirectionSchema } from "@/lib/character-direction/schema";
 import { DirectionHistorySchema } from "@/lib/character-direction/history";
+import { ReferenceBindingHistorySchema } from "@/lib/character-direction/reference-binding";
 
 const short = z.string().trim().min(1).max(300);
 const medium = z.string().trim().min(1).max(1200);
@@ -218,7 +219,8 @@ export const SeriesBlueprintGenerationSchema = z.object({
 export const SeriesBlueprintSchema = SeriesBlueprintGenerationSchema.extend({
   cast: z.array(SeriesBlueprintGenerationSchema.shape.cast.element.extend({
     generationDirection: CharacterDirectionSchema.optional(),
-    generationDirectionHistory: DirectionHistorySchema.optional()
+    generationDirectionHistory: DirectionHistorySchema.optional(),
+    referenceBindingHistory: ReferenceBindingHistorySchema.optional()
   })).min(3).max(6)
 });
 

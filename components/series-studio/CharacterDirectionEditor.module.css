@@ -13,3 +13,6 @@
 .ack { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; padding: 16px 0; line-height: 1.5; }
 .ack input { width: 20px; height: 20px; flex-shrink: 0; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.preview { display: block; max-width: 100%; width: auto; height: auto; max-height: 620px; object-fit: contain; margin: 20px auto; }
+.editor select { display: block; min-height: 46px; width: 100%; margin: 12px 0; padding: 12px; font: inherit; color: var(--text); background: var(--surface-soft); border: 1px solid var(--border-strong); border-radius: 12px; }
+.editor code, .editor dd { overflow-wrap: anywhere; }

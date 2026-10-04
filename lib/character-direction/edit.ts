@@ -43,7 +43,7 @@ const TABLES = [
 
 // Conservative series-wide inventory. No signed URLs, scripts, or storage paths
 // leave this function. The digest notices changes, not just changes in counts.
-async function inventory(db: SupabaseClient, userId: string, seriesId: string, characterId: string) {
+export async function readDirectionImpact(db: SupabaseClient, userId: string, seriesId: string, characterId: string) {
   const snapshots: Array<{ table: string; label: string; rows: Record<string, unknown>[] }> = await Promise.all(TABLES.map(async ([table, label]) => {
     let query = db.from(table).select("*", { count: "exact" }).eq("creator_id", userId).eq("series_id", seriesId);
     if (table === "production_reference_assets" || table === "character_performance_bibles") query = query.eq("character_id", characterId);
@@ -85,7 +85,7 @@ export async function editCharacterDirection(db: SupabaseClient, userId: string,
     if (last?.revision === receipt && same(last.direction, proposed)) return { saved: true as const, revision: expectedRevision, direction: current };
     if (request.expectedRevision !== expectedRevision) throw new DirectionEditError(409, "REVISION_CONFLICT", "This series changed. Review your proposal again; your choices have been kept.");
   }
-  const { revision: impactRevision, impact } = await inventory(db, userId, seriesId, characterId);
+  const { revision: impactRevision, impact } = await readDirectionImpact(db, userId, seriesId, characterId);
   const changes = (Object.keys(DIRECTION_CATALOG) as DirectionGroup[]).filter(group => hash(current[group]) !== hash(proposed[group]))
     .map(group => ({ group, before: directionLabels(current, group).join(", ") || "Story default", after: directionLabels(proposed, group).join(", ") || "Story default" }));
   const visualChanged = changes.some(change => change.group === "body" || change.group === "clothing");
