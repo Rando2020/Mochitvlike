@@ -11,6 +11,8 @@ import { getSeries } from "@/lib/series/persistence/getSeries";
 import { SeriesPersistenceError } from "@/lib/series/persistence/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
+export const maxDuration = 300;
+
 const RequestSchema = z.object({
   episodeKey: z.literal("episodeOne"),
   beatId: z.string().trim().min(1).max(100)
