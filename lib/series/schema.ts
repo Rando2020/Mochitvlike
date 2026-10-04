@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CharacterDirectionSchema } from "@/lib/character-direction/schema";
 
 const short = z.string().trim().min(1).max(300);
 const medium = z.string().trim().min(1).max(1200);
@@ -24,7 +25,7 @@ export const StudioFeatureTypeSchema = z.enum([
   "LOCATION_MAP","ABILITY_TRACKER","TIMELINE"
 ]);
 
-export const SeriesBlueprintSchema = z.object({
+export const SeriesBlueprintGenerationSchema = z.object({
   identity: z.object({
     title: z.string().trim().min(1).max(150),
     alternateTitles: z.array(z.string().trim().min(1).max(150)).max(5),
@@ -210,5 +211,13 @@ export const SeriesBlueprintSchema = z.object({
     assumptions: z.array(medium).max(10)
   }).strict()
 }).strict();
+
+// Generation retains the original strict, required-field schema. Only the server
+// attaches creator-selected direction, so model output cannot author tag metadata.
+export const SeriesBlueprintSchema = SeriesBlueprintGenerationSchema.extend({
+  cast: z.array(SeriesBlueprintGenerationSchema.shape.cast.element.extend({
+    generationDirection: CharacterDirectionSchema.optional()
+  })).min(3).max(6)
+});
 
 export type RuntimeSeriesBlueprint = z.infer<typeof SeriesBlueprintSchema>;

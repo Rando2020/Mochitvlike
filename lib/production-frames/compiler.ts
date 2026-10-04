@@ -1,3 +1,4 @@
+import { compileCharacterDirection } from "@/lib/character-direction/compile";
 import {createHash} from "node:crypto";
 import type {SeriesBlueprint} from "@/lib/series/types";
 import type {SceneBlueprint} from "@/lib/scenes/types";
@@ -62,7 +63,8 @@ export function buildProductionFrameGenerationSpec(input:{
   const c=cast.get(characterId);if(!c)throw new Error("PRODUCTION_FRAME_CHARACTER_NOT_FOUND");
   const cont=continuity.get(characterId);
   const bible=bibleByCharacter.get(characterId);
-  return{characterId,name:c.name,visualConcept:c.visualConcept,visualDescription:c.characterSheetSeed.visualDescription,
+  const visualDirection = c.generationDirection ? compileCharacterDirection(c.generationDirection).visual : [];
+  return{characterId,name:c.name,visualConcept:c.visualConcept,visualDescription:c.characterSheetSeed.visualDescription + (visualDirection.length ? "; Creator visual direction: " + visualDirection.join(" ") : ""),
    costumeRequirements:cont?.requiredAppearanceNotes??[],continuityConstraints:cont?.continuityNotes??[],
    performanceBibleVersion:bible?.version??null,referenceAssetIds:characterRefs.filter(r=>r.characterId===characterId).map(r=>r.id)};
  });

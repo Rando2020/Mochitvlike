@@ -1,3 +1,4 @@
+import { CharacterDirectionSummary } from "@/components/show-creation/CharacterDirectionControls";
 import type { CastMember } from "@/lib/series/types";
 import styles from "./SeriesStudio.module.css";
 
@@ -26,6 +27,7 @@ export function CastDetailSheet({
         <span className={styles.roleLabel}>{member.role.replaceAll("_", " ")}</span>
         <h2 id="cast-detail-title">{member.name}</h2>
         <p className={styles.sheetSummary}>{member.summary}</p>
+        {member.generationDirection ? <section><h3>Generation direction</h3><CharacterDirectionSummary direction={member.generationDirection} /></section> : null}
         <dl className={styles.characterGoals}>
           <div>
             <dt>Wants</dt>

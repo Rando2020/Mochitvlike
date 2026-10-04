@@ -1,3 +1,5 @@
+import type { CharacterDirection } from "@/lib/character-direction/schema";
+
 export type Genre =
   | "ACTION"
   | "ADVENTURE"
@@ -49,6 +51,7 @@ export type StudioFeatureType =
 export type StudioFeaturePriority = "PRIMARY" | "SECONDARY";
 
 export type CastMember = {
+  generationDirection?: CharacterDirection;
   id: string;
   role: CastRole;
   name: string;
