@@ -27,6 +27,19 @@ function spec(overrides:Record<string,unknown>={}){
 }
 
 describe("ProductionFrameGenerationSpec",()=>{
+ it("blocks new frames after a visual direction edit without mutating old refs or outputs",()=>{
+  const old = spec(); const series = structuredClone(theWoundsWeKeep); const before = structuredClone(references);
+  series.cast[0].generationDirection = {...EMPTY_CHARACTER_DIRECTION, body:"athletic"};
+  series.cast[0].generationDirectionHistory = [{revision:"a".repeat(64), previous:null, direction:series.cast[0].generationDirection, savedAt:"2026-10-04T00:00:00Z", visualChanged:true}];
+  expect(()=>spec({series})).toThrow("CHARACTER_DIRECTION_REFERENCE_REVIEW_REQUIRED");
+  expect(references).toEqual(before); expect(spec()).toEqual(old);
+ });
+ it("allows frames after voice-only direction edits",()=>{
+  const series = structuredClone(theWoundsWeKeep);
+  series.cast[0].generationDirection = {...EMPTY_CHARACTER_DIRECTION, voiceDelivery:"calm"};
+  series.cast[0].generationDirectionHistory = [{revision:"b".repeat(64), previous:null, direction:series.cast[0].generationDirection, savedAt:"2026-10-04T00:00:00Z", visualChanged:false}];
+  expect(spec({series})).toEqual(spec());
+ });
  it("uses explicit visual tags in canonical constraints without changing source or references",()=>{
   const series=structuredClone(theWoundsWeKeep);
   series.cast[0].generationDirection={...EMPTY_CHARACTER_DIRECTION,body:"athletic",clothing:"travel-worn",voiceTexture:"raspy"};

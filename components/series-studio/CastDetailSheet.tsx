@@ -1,12 +1,15 @@
 import { CharacterDirectionSummary } from "@/components/show-creation/CharacterDirectionControls";
+import Link from "next/link";
 import type { CastMember } from "@/lib/series/types";
 import styles from "./SeriesStudio.module.css";
 
 export function CastDetailSheet({
   member,
+  seriesId,
   onClose
 }: {
   member: CastMember | null;
+  seriesId?: string;
   onClose: () => void;
 }) {
   if (!member) return null;
@@ -27,6 +30,7 @@ export function CastDetailSheet({
         <span className={styles.roleLabel}>{member.role.replaceAll("_", " ")}</span>
         <h2 id="cast-detail-title">{member.name}</h2>
         <p className={styles.sheetSummary}>{member.summary}</p>
+        {seriesId && seriesId !== "demo" ? <Link href={`/series/${encodeURIComponent(seriesId)}/cast/${encodeURIComponent(member.id)}/direction`}>Edit generation direction</Link> : null}
         {member.generationDirection ? <section><h3>Generation direction</h3><CharacterDirectionSummary direction={member.generationDirection} /></section> : null}
         <dl className={styles.characterGoals}>
           <div>

@@ -256,7 +256,7 @@ export function SeriesStudio({
         ))}
       </nav>
 
-      <CastDetailSheet member={selectedCast} onClose={() => setSelectedCast(null)} />
+      <CastDetailSheet seriesId={seriesId} member={selectedCast} onClose={() => setSelectedCast(null)} />
     </div>
   );
 }

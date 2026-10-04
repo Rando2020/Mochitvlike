@@ -31,6 +31,11 @@ export function buildProductionFrameGenerationSpec(input:{
  if(!storyboard.panels.some(p=>p.id===panel.id))throw new Error("PRODUCTION_FRAME_PANEL_NOT_FOUND");
  const visualBeat=visualPlan.visualBeats.find(b=>b.id===panel.sourceVisualBeatId);if(!visualBeat)throw new Error("PRODUCTION_FRAME_VISUAL_BEAT_NOT_FOUND");
  const allCharacterIds=[...new Set([...visualBeat.focalCharacterIds,...visualBeat.supportingCharacterIds,...panel.characterIds])];
+ // Approved references remain immutable. Until a revision-bound reference review
+ // exists, never combine a changed body/costume with a previously approved identity.
+ if (series.cast.some(c => allCharacterIds.includes(c.id) && c.generationDirectionHistory?.some(revision => revision.visualChanged))) {
+  throw new Error("CHARACTER_DIRECTION_REFERENCE_REVIEW_REQUIRED");
+ }
  const characterRefs=requireCharacterReferences(input.references,allCharacterIds,model.id);
  const cast=new Map(series.cast.map(c=>[c.id,c]));
  const continuity=new Map(visualPlan.continuity.characters.map(c=>[c.characterId,c]));
