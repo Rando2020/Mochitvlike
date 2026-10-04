@@ -41,7 +41,7 @@ test("create a show with fixture direction, recover uncertain save, reload, and 
       return route.fulfill({ status: 200, json: { seriesBlueprint: blueprint, metadata: { source: "llm", schemaVersion: "1.0" } } });
     });
     await page.getByRole("button", { name: "Explore this show" }).click();
-    await expect(page.getByRole("alert")).toContainText("Your idea is still here");
+    await expect(page.getByRole("alert").filter({ hasText: "Your idea is still here" })).toBeVisible();
     await expect(page.getByLabel("Describe your show")).toHaveValue(idea);
     await page.getByRole("button", { name: "Explore this show" }).click();
     await expect(page.getByRole("heading", { name: "The Wounds We Keep", exact: true })).toBeVisible();
@@ -63,7 +63,7 @@ test("create a show with fixture direction, recover uncertain save, reload, and 
       return route.fulfill({ response });
     });
     await page.getByRole("button", { name: "Save and open Studio" }).click();
-    await expect(page.getByRole("alert")).toContainText("could not confirm the save");
+    await expect(page.getByRole("alert").filter({ hasText: "could not confirm the save" })).toBeVisible();
     await page.reload();
     await page.getByRole("button", { name: "Save and open Studio" }).click();
     await expect(page).toHaveURL(new RegExp(`/series/${creationId}$`));
