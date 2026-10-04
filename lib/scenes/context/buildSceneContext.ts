@@ -1,3 +1,4 @@
+import { compileCharacterDirection } from "@/lib/character-direction/compile";
 import type { SeriesBlueprint } from "@/lib/series/types";
 import type { SceneContext } from "../types";
 
@@ -21,7 +22,7 @@ export function buildSceneContext(
   const involvedIds = new Set(sourceBeat.involvedCharacterIds);
   const involvedCast = blueprint.cast
     .filter((member) => involvedIds.has(member.id))
-    .map(({ id, name, role, storyFunction, summary, want, need, internalConflict, relationshipToProtagonist }) => ({
+    .map(({ id, name, role, storyFunction, summary, want, need, internalConflict, relationshipToProtagonist, generationDirection }) => ({
       id,
       name,
       role,
@@ -30,7 +31,8 @@ export function buildSceneContext(
       want,
       need,
       internalConflict,
-      relationshipToProtagonist
+      relationshipToProtagonist,
+      ...(generationDirection ? { creatorPersonalityGuidance: compileCharacterDirection(generationDirection).personality } : {})
     }));
 
   const relationships = blueprint.relationships.filter(

@@ -1,3 +1,4 @@
+import { EMPTY_CHARACTER_DIRECTION } from "@/lib/character-direction/schema";
 import {describe,expect,it} from "vitest";
 import {theWoundsWeKeep} from "@/lib/series/demoBlueprint";
 import {buildValidScene} from "@/lib/scenes/__tests__/fixtures";
@@ -26,6 +27,17 @@ function spec(overrides:Record<string,unknown>={}){
 }
 
 describe("ProductionFrameGenerationSpec",()=>{
+ it("uses explicit visual tags in canonical constraints without changing source or references",()=>{
+  const series=structuredClone(theWoundsWeKeep);
+  series.cast[0].generationDirection={...EMPTY_CHARACTER_DIRECTION,body:"athletic",clothing:"travel-worn",voiceTexture:"raspy"};
+  const before=JSON.stringify(series);
+  const compiled=spec({series});
+  expect(compiled.characters.find(c=>c.characterId==="char_orin")?.visualDescription).toContain("athletic build");
+  expect(compiled.canonicalConstraints.join(" ")).toContain("Travel-worn clothing");
+  expect(compiled.canonicalConstraints.join(" ")).not.toContain("raspy vocal");
+  expect(JSON.stringify(series)).toBe(before);
+  expect(compiled.characters.find(c=>c.characterId==="char_orin")?.referenceAssetIds).toContain("ref-orin");
+ });
  it("is deterministic",()=>expect(spec()).toEqual(spec()));
  it("consumes Series",()=>expect(spec().creativeDirection.visualStyleDescription).toBe(theWoundsWeKeep.creativeDNA.visualStyle.description));
  it("consumes Scene",()=>expect(spec().sceneId).toBe(base.scene.id));

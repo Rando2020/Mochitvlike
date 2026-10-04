@@ -10,7 +10,7 @@ export type SceneContext = {
   involvedCast: Array<Pick<
     SeriesBlueprint["cast"][number],
     "id" | "name" | "role" | "storyFunction" | "summary" | "want" | "need" | "internalConflict" | "relationshipToProtagonist"
-  >>;
+  > & { creatorPersonalityGuidance?: string[] }>;
   relationships: SeriesBlueprint["relationships"];
   location: SeriesBlueprint["world"]["locations"][number] | null;
   worldRules: SeriesBlueprint["world"]["rules"];

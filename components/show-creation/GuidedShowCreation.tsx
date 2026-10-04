@@ -9,6 +9,9 @@ import { hasValidSeriesBlueprintInvariants } from "@/lib/series/persistence/vali
 import { persistGeneratedSeries } from "@/lib/series/createSeries";
 import type { SeriesBlueprint } from "@/lib/series/types";
 import type { SeriesSummary } from "@/lib/series/persistence/types";
+import { CharacterDirectionSchema, EMPTY_CHARACTER_DIRECTION, type CharacterDirection } from "@/lib/character-direction/schema";
+import { hasCharacterDirection } from "@/lib/character-direction/compile";
+import { CharacterDirectionControls, CharacterDirectionSummary } from "./CharacterDirectionControls";
 import styles from "./GuidedShowCreation.module.css";
 
 const GeneratedSchema = z.object({
@@ -17,6 +20,7 @@ const GeneratedSchema = z.object({
 });
 type Generated = z.infer<typeof GeneratedSchema>;
 const DraftSchema = z.object({
+  protagonistDirection: CharacterDirectionSchema.optional(),
   idea: z.string().max(5000), seconds: z.number().int().min(30).max(120), episodes: z.number().int().min(8).max(20),
   generated: GeneratedSchema.nullable(), creationId: z.string().uuid(), savedId: z.string().uuid().nullable()
 });
@@ -28,6 +32,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
   connectionIssue?: boolean;
 }) {
   const router = useRouter();
+  const [protagonistDirection, setProtagonistDirection] = useState<CharacterDirection>(() => structuredClone(EMPTY_CHARACTER_DIRECTION));
   const [idea, setIdea] = useState("");
   const [seconds, setSeconds] = useState(60);
   const [episodes, setEpisodes] = useState(12);
@@ -44,6 +49,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
   const key = creatorId ? `show-creation-v1:${creatorId}` : null;
 
   useEffect(() => {
+    setProtagonistDirection(structuredClone(EMPTY_CHARACTER_DIRECTION));
     setIdea(""); setSeconds(60); setEpisodes(12); setGenerated(null); setCreationId(null); setSavedId(null); setMessage(null);
     if (key) {
       try {
@@ -51,6 +57,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
         if (raw) {
           const draft = DraftSchema.safeParse(JSON.parse(raw));
           if (draft.success && (!draft.data.generated || hasValidSeriesBlueprintInvariants(draft.data.generated.seriesBlueprint))) {
+            setProtagonistDirection(draft.data.protagonistDirection ?? structuredClone(EMPTY_CHARACTER_DIRECTION));
             setIdea(draft.data.idea); setSeconds(draft.data.seconds); setEpisodes(draft.data.episodes);
             setGenerated(draft.data.generated); setCreationId(draft.data.creationId); setSavedId(draft.data.savedId);
           } else sessionStorage.removeItem(key);
@@ -62,9 +69,9 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
 
   useEffect(() => {
     if (!loaded || hydratedKey !== key || !key || !creationId) return;
-    try { sessionStorage.setItem(key, JSON.stringify({ idea, seconds, episodes, generated, creationId, savedId })); }
+    try { sessionStorage.setItem(key, JSON.stringify({ protagonistDirection, idea, seconds, episodes, generated, creationId, savedId })); }
     catch { setStorageAvailable(false); }
-  }, [loaded, hydratedKey, key, idea, seconds, episodes, generated, creationId, savedId]);
+  }, [loaded, hydratedKey, key, protagonistDirection, idea, seconds, episodes, generated, creationId, savedId]);
 
   useEffect(() => { if (loaded && !creationId) setCreationId(crypto.randomUUID()); }, [loaded, creationId]);
   useEffect(() => { if (generated) heading.current?.focus(); }, [generated]);
@@ -72,7 +79,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
   async function explore(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy.current || !creatorId || !providerReady) return;
-    const input = SeriesIdeaRequestSchema.safeParse({ idea, preferences: { episodeLengthSeconds: seconds, targetEpisodeCount: episodes } });
+    const input = SeriesIdeaRequestSchema.safeParse({ idea, ...(hasCharacterDirection(protagonistDirection) ? { protagonistDirection } : {}), preferences: { episodeLengthSeconds: seconds, targetEpisodeCount: episodes } });
     if (!input.success) { setMessage("Describe your show in 3 to 5,000 characters and choose a supported episode format."); return; }
     busy.current = true; setPending("generate"); setMessage(null);
     try {
@@ -85,6 +92,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
       if (!result.success || !hasValidSeriesBlueprintInvariants(result.data.seriesBlueprint) ||
           result.data.seriesBlueprint.season.format.episodeLengthSeconds !== seconds ||
           result.data.seriesBlueprint.season.format.targetEpisodeCount !== episodes) throw new Error("INVALID_DIRECTION");
+      if (hasCharacterDirection(protagonistDirection) && JSON.stringify(result.data.seriesBlueprint.cast.find(member => member.role === "PROTAGONIST")?.generationDirection) !== JSON.stringify(protagonistDirection)) throw new Error("MISSING_CHARACTER_DIRECTION");
       setCreationId(crypto.randomUUID()); setSavedId(null); setGenerated(result.data);
     } catch { setMessage("We could not develop a valid direction. Your idea is still here; check your connection and try again."); }
     finally { busy.current = false; setPending(null); }
@@ -99,7 +107,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
       setSavedId(result.series.id);
       // Write receipt before navigation; a reload can open the same saved series.
       if (key) {
-        try { sessionStorage.setItem(key, JSON.stringify({ idea, seconds, episodes, generated, creationId, savedId: result.series.id })); }
+        try { sessionStorage.setItem(key, JSON.stringify({ protagonistDirection, idea, seconds, episodes, generated, creationId, savedId: result.series.id })); }
         catch { setStorageAvailable(false); }
       }
       router.push(`/series/${result.series.id}`);
@@ -134,6 +142,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
             <article><h3>The central tension</h3><p>{blueprint.storyEngine.centralConflict}</p></article>
             <article><h3>Episode 1 opens with…</h3><p>{blueprint.episodeOne.hook}</p></article>
           </div>
+          {protagonist?.generationDirection ? <article><h3>Main character direction</h3><CharacterDirectionSummary direction={protagonist.generationDirection} /><p className={styles.hint}>These choices guide future character, scene, and voice preparation. No character art or audio has been generated.</p></article> : null}
           <p className={styles.hint}>{blueprint.season.format.targetEpisodeCount} episodes · {blueprint.season.format.episodeLengthSeconds} seconds each. This is a story foundation; media comes later.</p>
           {blueprint.clarification.needed ? <details className={styles.questions}><summary>Questions to explore later</summary>{blueprint.clarification.questions.map(q => <p key={q.id}><strong>{q.question}</strong><br />{q.whyItMatters}</p>)}</details> : null}
           <div className={styles.actions}>{savedId ? <a href={`/series/${savedId}`} className={styles.primary}>Open saved Studio</a> : <button type="button" className={styles.primary} disabled={pending !== null || !loaded} onClick={() => void save()}>{pending === "save" ? "Saving your show…" : "Save and open Studio"}</button>}<button type="button" className={styles.secondary} disabled={pending !== null} onClick={revise}>{savedId ? "Start another show" : "Revise my idea"}</button></div>
@@ -142,6 +151,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
           <label htmlFor="show-idea">Describe your show</label>
           <textarea id="show-idea" value={idea} onChange={e => setIdea(e.target.value)} placeholder="A healer takes on other people's wounds, until one wound begins speaking…" required minLength={3} maxLength={5000} rows={5} disabled={pending !== null} aria-describedby="idea-help" />
           <p id="idea-help" className={styles.hint}>A character, a conflict, or a feeling. Up to 5,000 characters.</p>
+          <CharacterDirectionControls value={protagonistDirection} onChange={setProtagonistDirection} disabled={pending !== null} />
           <details className={styles.options}><summary>Episode format · {seconds}s × {episodes} episodes</summary><div className={styles.formatGrid}><label>Episode length (seconds)<input type="number" min={30} max={120} step={1} value={seconds} disabled={pending !== null} onChange={e => setSeconds(Number(e.target.value))} required /></label><label>Season length (episodes)<input type="number" min={8} max={20} step={1} value={episodes} disabled={pending !== null} onChange={e => setEpisodes(Number(e.target.value))} required /></label></div></details>
           <div className={styles.actions}><button type="submit" className={styles.primary} disabled={pending !== null || !loaded || hydratedKey !== key || !creatorId || !providerReady}>{pending === "generate" ? "Developing your direction…" : "Explore this show"}</button></div>
           <p className={styles.hint}>You'll review the direction before saving your show.</p>
