@@ -8,7 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:cloud": "playwright test"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -20,6 +21,7 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@playwright/test": "1.58.2",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^24.0.0",
@@ -28,5 +30,9 @@
     "jsdom": "^27.0.0",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"
-  }
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "packageManager": "npm@10.9.4"
 }
