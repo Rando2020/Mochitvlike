@@ -27,6 +27,7 @@ test("create a show with fixture direction, recover uncertain save, reload, and 
     await expect(page.getByRole("heading", { name: "Your shows" })).toBeVisible();
     await page.getByRole("link", { name: "Create a Show", exact: true }).click();
     await expect(page.getByRole("heading", { name: "What would you love to watch?" })).toBeVisible();
+    await page.screenshot({ path: "test-results/create-show-desktop.png", fullPage: true });
     const idea = "A healer carries other people's wounds, until one begins speaking.";
     await page.getByLabel("Describe your show").fill(idea);
     let attempts = 0;
@@ -85,7 +86,11 @@ test("create a show with fixture direction, recover uncertain save, reload, and 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(overflow).toBe(false);
     await page.screenshot({ path: "test-results/create-show-mobile.png", fullPage: true });
+    await page.setViewportSize({ width: 320, height: 720 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
+    await page.screenshot({ path: "test-results/create-show-small-mobile.png", fullPage: true });
     expect((await request.get(`/api/series/${seriesId}`)).status()).toBe(401);
+    expect((await request.post("/api/series/generate", { data: { idea: "A small mystery" } })).status()).toBe(401);
     expect((await page.request.get("/system")).status()).toBe(404); // Signed in, but not an operations owner.
     const unauthWorker = await request.get("/api/internal/storyboard-jobs/process");
     expect(unauthWorker.status()).toBe(401);
