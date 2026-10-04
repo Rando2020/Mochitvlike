@@ -25,6 +25,17 @@ jobs:
       - name: Validate fresh migration replay and RLS
         run: |
           supabase db reset --local
+          # pg_prove mounts the test directory only. Inline the actual migration
+          # into the transaction test before sending it to that container.
+          python - <<'PYTEST'
+          from pathlib import Path
+          test = Path('supabase/tests/pipeline_rpc_access.sql')
+          migration = Path('supabase/migrations/20261004003600_revoke_anonymous_pipeline_execution.sql')
+          include = '\\ir ../migrations/' + migration.name
+          source = test.read_text()
+          assert source.count(include) == 1
+          test.write_text(source.replace(include, migration.read_text()))
+          PYTEST
           supabase test db
       - name: Configure disposable smoke environment
         run: |
