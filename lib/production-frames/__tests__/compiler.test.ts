@@ -1,4 +1,6 @@
 import { EMPTY_CHARACTER_DIRECTION } from "@/lib/character-direction/schema";
+import { characterVisualRevision } from "@/lib/character-direction/reference-binding";
+import { ProductionFrameGenerationSpecSchema } from "../schema";
 import {describe,expect,it} from "vitest";
 import {theWoundsWeKeep} from "@/lib/series/demoBlueprint";
 import {buildValidScene} from "@/lib/scenes/__tests__/fixtures";
@@ -27,6 +29,46 @@ function spec(overrides:Record<string,unknown>={}){
 }
 
 describe("ProductionFrameGenerationSpec",()=>{
+ function boundFixture() {
+  const series=structuredClone(theWoundsWeKeep);
+  series.cast[0].generationDirection={...EMPTY_CHARACTER_DIRECTION,body:"athletic"};
+  series.cast[0].generationDirectionHistory=[{revision:"a".repeat(64),previous:null,direction:series.cast[0].generationDirection,savedAt:"2026-10-04T00:00:00Z",visualChanged:true}];
+  const reference:ProductionReferenceAsset={...references[0],id:"11111111-1111-4111-8111-111111111111",version:2,status:"APPROVED",referenceRole:"FULL_BODY",provenance:{source:"OWNED",creatorNameOrId:"owner",licenseIdOrDescription:"Original owned art",sourceUrlOrRecord:null,permissions:{productionUse:true,commercialUse:true,modelConditioning:true,redistribution:false},projectSpecific:true,notes:null}};
+  series.cast[0].referenceBindingHistory=[{id:"c".repeat(64),visualRevision:characterVisualRevision(series.cast[0]),referenceId:reference.id,referenceChecksum:reference.checksum,referenceVersion:2,sourceRole:"FULL_BODY",approvedBy:"22222222-2222-4222-8222-222222222222",approvedAt:"2026-10-04T00:00:00Z"}];
+  return {series,reference,refs:[...references,reference]};
+ }
+ it("unblocks only the reviewed identity, snapshots the binding, and leaves assets/old specs unchanged",()=>{
+  const f=boundFixture(); const before=structuredClone(f); const old=spec(); const output=spec({series:f.series,references:f.refs});
+  expect(output.characters.find(c=>c.characterId==="char_orin")?.referenceAssetIds).toEqual([f.reference.id]);
+  expect(output.references.find(r=>r.id===f.reference.id)?.referenceRole).toBe("PRIMARY_IDENTITY");
+  expect(output.references.some(r=>r.id==="ref-orin")).toBe(false);
+  expect(output.canonicalConstraints.join(" ")).toContain("approved identity binding "+"c".repeat(64));
+  expect(output.references.some(r=>"version" in r)).toBe(false);
+  expect(ProductionFrameGenerationSpecSchema.safeParse(output).success).toBe(true);
+  expect(f).toEqual(before); expect(spec()).toEqual(old);
+  const checksum=productionFrameSpecChecksum(output);f.reference.provenance!.permissions.productionUse=false;
+  expect(productionFrameSpecChecksum(output)).toBe(checksum);
+ });
+ it("requires review again after another visual or canonical appearance change",()=>{
+  for(const change of ["body","canonical"]){const f=boundFixture();if(change==="body")f.series.cast[0].generationDirection!.body="muscular";else f.series.cast[0].visualConcept="Different appearance";
+   expect(()=>spec({series:f.series,references:f.refs})).toThrow("CHARACTER_DIRECTION_REFERENCE_REVIEW_REQUIRED");}
+ });
+ it("rejects missing, wrong-character, changed-checksum, changed-version, changed-role, and archived bound assets",()=>{
+  for(const override of [{characterId:"char_mara"},{checksum:"b".repeat(64)},{version:3},{referenceRole:"EXPRESSION"},{status:"ARCHIVED"}]){
+   const f=boundFixture();Object.assign(f.reference,override);expect(()=>spec({series:f.series,references:f.refs})).toThrow("CHARACTER_DIRECTION_REFERENCE_BINDING_INVALID");
+  }
+  const f=boundFixture();expect(()=>spec({series:f.series,references:references})).toThrow("CHARACTER_DIRECTION_REFERENCE_BINDING_INVALID");
+ });
+ it("preserves model and provenance guards after identity binding",()=>{
+  const f=boundFixture();f.reference.modelCompatibility=["another-model"];
+  expect(()=>spec({series:f.series,references:f.refs})).toThrow("UNAPPROVED_PRODUCTION_REFERENCE");
+  f.reference.modelCompatibility=[];f.reference.provenance!.permissions.modelConditioning=false;
+  expect(()=>spec({series:f.series,references:f.refs})).toThrow("UNAPPROVED_PRODUCTION_REFERENCE");
+ });
+ it("non-visual edits keep a matching identity binding valid",()=>{
+  const f=boundFixture();const before=spec({series:f.series,references:f.refs});f.series.cast[0].generationDirection!.voiceTexture="warm";
+  expect(spec({series:f.series,references:f.refs})).toEqual(before);
+ });
  it("blocks new frames after a visual direction edit without mutating old refs or outputs",()=>{
   const old = spec(); const series = structuredClone(theWoundsWeKeep); const before = structuredClone(references);
   series.cast[0].generationDirection = {...EMPTY_CHARACTER_DIRECTION, body:"athletic"};

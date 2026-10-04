@@ -9,7 +9,8 @@ import type {VisualFoundationModel} from "@/lib/visual-models/types";
 import type {CanonPerformanceContext,CharacterPerformanceBible} from "@/lib/character-performance/types";
 import {buildProductionFramePerformanceContext} from "@/lib/character-performance/integration";
 import {compileProductionFramePrompt} from "./prompt";
-import {requireAbilityReferences,requireCharacterReferences} from "./references";
+import {requireAbilityReferences} from "./references";
+import {requireRevisionBoundCharacterReferences} from "./direction-references";
 import type {ProductionAbilityConstraint,ProductionFrameGenerationSpec,ProductionReferenceAsset} from "./types";
 
 export type PerformanceBinding={characterId:string;actionPatternId?:string;signatureActionId?:string;abilityId?:string};
@@ -31,12 +32,9 @@ export function buildProductionFrameGenerationSpec(input:{
  if(!storyboard.panels.some(p=>p.id===panel.id))throw new Error("PRODUCTION_FRAME_PANEL_NOT_FOUND");
  const visualBeat=visualPlan.visualBeats.find(b=>b.id===panel.sourceVisualBeatId);if(!visualBeat)throw new Error("PRODUCTION_FRAME_VISUAL_BEAT_NOT_FOUND");
  const allCharacterIds=[...new Set([...visualBeat.focalCharacterIds,...visualBeat.supportingCharacterIds,...panel.characterIds])];
- // Approved references remain immutable. Until a revision-bound reference review
- // exists, never combine a changed body/costume with a previously approved identity.
- if (series.cast.some(c => allCharacterIds.includes(c.id) && c.generationDirectionHistory?.some(revision => revision.visualChanged))) {
-  throw new Error("CHARACTER_DIRECTION_REFERENCE_REVIEW_REQUIRED");
- }
- const characterRefs=requireCharacterReferences(input.references,allCharacterIds,model.id);
+ const boundCharacters=requireRevisionBoundCharacterReferences(series,input.references,allCharacterIds,model.id);
+ const characterRefs=boundCharacters.references;
+ const providerReferences=input.references.map(({version:_version,...reference})=>reference);
  const cast=new Map(series.cast.map(c=>[c.id,c]));
  const continuity=new Map(visualPlan.continuity.characters.map(c=>[c.characterId,c]));
  const bibleByCharacter=new Map(input.performanceBibles.map(b=>[b.characterId,b]));
@@ -49,7 +47,7 @@ export function buildProductionFrameGenerationSpec(input:{
   contexts.push(context);
   if(context.ability){
    const requiredSlots=context.ability.referenceSheet.filter(slot=>slot.required).map(slot=>slot.slot);
-   const refs=requireAbilityReferences(input.references,context.ability.id,model.id,requiredSlots);abilityRefs.push(...refs);
+   const refs=requireAbilityReferences(providerReferences,context.ability.id,model.id,requiredSlots);abilityRefs.push(...refs);
    const effectiveBeats=[...context.ability.choreography.windup,...context.ability.choreography.activation,...context.ability.choreography.release,...context.ability.choreography.impact,...context.ability.choreography.recovery];
    abilities.push({
     characterId,abilityId:context.ability.id,abilityName:context.ability.name,variantId:context.ability.variant.id,
@@ -75,6 +73,7 @@ export function buildProductionFrameGenerationSpec(input:{
  });
  const location=panel.locationId?series.world.locations.find(l=>l.id===panel.locationId)??null:null;
  const canonical=[
+  ...boundCharacters.notes,
   `Series visual identity: ${series.creativeDNA.visualStyle.description}`,
   `Color language: ${series.creativeDNA.visualStyle.colorLanguage}`,
   ...characters.flatMap(c=>[`${c.name} identity: ${c.visualConcept}; ${c.visualDescription}`,...c.costumeRequirements.map(x=>`${c.name} appearance: ${x}`),...c.continuityConstraints.map(x=>`${c.name} continuity: ${x}`)]),

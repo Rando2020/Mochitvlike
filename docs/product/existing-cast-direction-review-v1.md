@@ -1,5 +1,7 @@
 # Existing cast direction: review and save v1
 
+Implementation update: [revision-bound reference review](./revision-bound-reference-review-v1.md) now supplies the explicit identity-binding flow described below as a follow-up. Its current binding checks supersede the unconditional visual-history frame pause; missing or invalid bindings still fail closed. The original design below is retained for context.
+
 ## Scope and branch state
 
 Stacked on draft PR #26 (`feature/character-direction-tags`), not on main. PR #24 is its guided-creation dependency. Episode board #25 and browser-first operations #23 are separate work. This change does not merge them or change deployments.
