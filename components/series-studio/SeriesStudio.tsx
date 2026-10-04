@@ -9,6 +9,8 @@ import { CastDetailSheet } from "./CastDetailSheet";
 import { CastStrip } from "./CastStrip";
 import { ClarificationCard, type ClarificationChoice } from "./ClarificationCard";
 import { CreativeDNA } from "./CreativeDNA";
+import { EpisodeBoard } from "./EpisodeBoard";
+import { SeriesDrawer } from "./SeriesDrawer";
 import { EpisodeHero } from "./EpisodeHero";
 import { StudioGuide } from "./StudioGuide";
 import { selectActiveScenes } from "./studioGuide";
@@ -64,6 +66,7 @@ export function SeriesStudio({
 }: SeriesStudioProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<StudioTab>("studio");
+  const [seriesDrawerOpen, setSeriesDrawerOpen] = useState(false);
   const [selectedCast, setSelectedCast] = useState<CastMember | null>(null);
   const [expandedBeatId, setExpandedBeatId] = useState<string | null>(blueprint.episodeOne.beats[0]?.id ?? null);
   const sceneRequestPending = useRef(false);
@@ -202,8 +205,14 @@ export function SeriesStudio({
           {activeTab === "episode" ? (
             <div className={styles.tabScene} data-testid="episode-tab">
               {header}
-              {episodeHero}
-              <StoryEnginePanel blueprint={blueprint} />
+              <div className={styles.guideActions}>
+                <button type="button" className={styles.secondaryButton} onClick={() => setSeriesDrawerOpen(true)}>Your series</button>
+              </div>
+              <StudioGuide blueprint={blueprint} scenes={activeScenes} pending={scenePending}
+                preview={seriesId === "demo" && !onDevelopScene} onScene={handleScene} onReview={() => document.getElementById("episode-board-title")?.focus()} />
+              {sceneError ? <div className={styles.contextualEmpty} role="alert">We could not open or create your scene plan. Try again. If a plan was saved, reload the Studio to continue it.</div> : null}
+              <EpisodeBoard blueprint={blueprint} scenes={activeScenes} pending={scenePending}
+                preview={seriesId === "demo" && !onDevelopScene} onScene={handleScene} />
             </div>
           ) : null}
 
@@ -269,6 +278,7 @@ export function SeriesStudio({
         ))}
       </nav>
 
+      <SeriesDrawer blueprint={blueprint} open={seriesDrawerOpen} onClose={() => setSeriesDrawerOpen(false)} />
       <CastDetailSheet member={selectedCast} onClose={() => setSelectedCast(null)} />
     </div>
   );
