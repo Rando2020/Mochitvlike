@@ -13,10 +13,12 @@ const output = {
   SUPABASE_SERVICE_ROLE_KEY: values.SERVICE_ROLE_KEY,
   CRON_SECRET: randomBytes(32).toString("hex"),
   CLOUD_SMOKE: "true",
-  OPERATIONS_OWNER_IDS: "",
+  OPERATIONS_OWNER_IDS: "33333333-3333-4333-8333-333333333333",
   // Browser tests intercept generation; these never authorize a paid call.
   OPENAI_API_KEY: "ci-fixture-no-provider-access",
-  OPENAI_SERIES_MODEL: "ci-fixture-model"
+  OPENAI_SERIES_MODEL: "ci-fixture-model",
+  OPENAI_SCENE_MODEL: "ci-fixture-scene-model",
+  OPENAI_BASE_URL: "http://127.0.0.1:4011/v1"
 };
 for (const value of Object.values(output)) if (value) process.stdout.write(`::add-mask::${value}\n`);
 for (const [key, value] of Object.entries(output)) {

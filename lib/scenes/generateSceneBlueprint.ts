@@ -62,20 +62,22 @@ export class OpenAISceneBlueprintProvider implements SceneBlueprintProvider {
   private readonly model: string;
 
   constructor() {
-    if (!process.env.OPENAI_API_KEY) {
+    const model = process.env.OPENAI_SCENE_MODEL;
+    if (!process.env.OPENAI_API_KEY || !model) {
       throw new SceneGenerationError(
         "SCENE_PROVIDER_UNAVAILABLE",
         "Scene generation provider is unavailable."
       );
     }
 
-    this.client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    this.model = process.env.OPENAI_SCENE_MODEL ?? "gpt-5.6-luna";
+    this.client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 120_000, maxRetries: 0 });
+    this.model = model;
   }
 
   private async call(developer: string, payload: unknown) {
     const response = await this.client.responses.create({
       model: this.model,
+      max_output_tokens: 10000,
       input: [
         { role: "developer", content: developer },
         { role: "user", content: JSON.stringify(payload) }

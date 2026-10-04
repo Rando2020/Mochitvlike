@@ -7,12 +7,14 @@ import styles from "./SeriesStudio.module.css";
 export function EpisodeHero({
   blueprint,
   sceneSummaries,
+  pending = false,
   expandedBeatId,
   onToggleBeat,
   onDevelopScene
 }: {
   blueprint: SeriesBlueprint;
   sceneSummaries: SceneSummary[];
+  pending?: boolean;
   expandedBeatId: string | null;
   onToggleBeat: (beatId: string) => void;
   onDevelopScene?: (beatId: string) => void | Promise<void>;
@@ -41,6 +43,7 @@ export function EpisodeHero({
       <EpisodeBeatList
         blueprint={blueprint}
         sceneSummaries={sceneSummaries}
+        pending={pending}
         expandedBeatId={expandedBeatId}
         onToggleBeat={onToggleBeat}
         onDevelopScene={onDevelopScene}
