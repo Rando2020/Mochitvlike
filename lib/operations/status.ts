@@ -9,7 +9,7 @@ export async function connectionChecks(supabase: SupabaseClient): Promise<Connec
     } catch { checks.push({ label, state: "needs_attention", message: "The connection did not respond. Try again, then check database setup." }); }
   }
   for (const [label, present, message] of [
-    ["Story AI", Boolean(process.env.OPENAI_API_KEY), "Key is configured. Provider access and generation have not been tested."],
+    ["Story AI", Boolean(process.env.OPENAI_API_KEY && (process.env.OPENAI_SERIES_MODEL || process.env.OPENAI_SCENE_MODEL)), "Key and show model are configured. Provider access and generation have not been tested."],
     ["Worker access", Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.CRON_SECRET), "Worker credentials are configured. Scheduling and execution have not been tested."],
     ["Visual inference", Boolean(process.env.VISUAL_INFERENCE_URL && process.env.VISUAL_INFERENCE_TOKEN), "Endpoint and token are configured. GPU readiness and generation have not been tested."],
     ["Motion", Boolean(process.env.RUNWAYML_API_SECRET), "Key is configured. Provider access has not been tested."],

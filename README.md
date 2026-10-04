@@ -8,10 +8,10 @@ Your browser-first anime/show production workspace.
 
 Start with the [browser setup guide](docs/BROWSER_FIRST_SETUP.md). It covers account connection, preview isolation, database updates, owner connection checks, and recovery.
 
-The hosted launch page provides Open Studio, Sign in, Preview Changes, and Build Status. `/studio` lists your saved projects. `/system` is restricted to configured owner accounts. This release does not connect idea-to-series creation or activate media providers.
+The hosted launch page provides Create a Show, Open Studio, Sign in, Preview Changes, and Build Status. `/create` guides idea, direction review, and explicit save. `/studio` lists your saved projects. `/system` is restricted to configured owner accounts. Story creation requires configured server-side AI credentials and a model available to your account; media providers remain separate.
 
 ## Developer checks
 
 Node 22, npm 10.9.4, `npm ci`, `npm run typecheck`, `npm test`, and `npm run build`.
 
-Cloud Smoke runs fresh SQL migration replay, database ownership tests, browser login, project save/reload, and a protected empty-queue worker check inside disposable GitHub-runner infrastructure. It never uses production accounts or paid generation providers.
+Cloud Smoke runs fresh SQL migration replay, database ownership tests, browser login, fixture-based direction review, uncertain-save recovery, project reload, and a protected empty-queue worker check inside disposable GitHub-runner infrastructure. It never uses production accounts or paid generation providers.

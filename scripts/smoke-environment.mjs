@@ -13,7 +13,10 @@ const output = {
   SUPABASE_SERVICE_ROLE_KEY: values.SERVICE_ROLE_KEY,
   CRON_SECRET: randomBytes(32).toString("hex"),
   CLOUD_SMOKE: "true",
-  OPERATIONS_OWNER_IDS: ""
+  OPERATIONS_OWNER_IDS: "",
+  // Browser tests intercept generation; these never authorize a paid call.
+  OPENAI_API_KEY: "ci-fixture-no-provider-access",
+  OPENAI_SERIES_MODEL: "ci-fixture-model"
 };
 for (const value of Object.values(output)) if (value) process.stdout.write(`::add-mask::${value}\n`);
 for (const [key, value] of Object.entries(output)) {

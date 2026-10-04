@@ -34,8 +34,8 @@ jobs:
           CLOUD_SMOKE: 'true'
       - run: npx playwright install --with-deps chromium
       - run: npm run test:cloud
-      - name: Upload browser failure evidence
-        if: failure()
+      - name: Upload browser evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cloud-smoke-failures

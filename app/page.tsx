@@ -3,8 +3,9 @@ export default function Home() {
   return <main className="ops-shell">
     <p className="ops-eyebrow">YOUR CREATIVE WORKSPACE</p>
     <h1>Your studio, one click away.</h1>
-    <p>Open your saved shows and continue developing Episode 1. Everything runs in your browser.</p>
+    <p>Create a show from an idea, or continue Episode 1 in a saved project. Everything runs in your browser.</p>
     <nav className="ops-links" aria-label="Project access">
+      <Link className="ops-button" href="/create">Create a Show</Link>
       <Link className="ops-button" href="/studio">Open Studio</Link>
       <Link className="ops-button" href="/login">Sign in</Link>
       <a className="ops-button" href="https://github.com/Rando2020/Mochitvlike/pulls">Preview Changes</a>
