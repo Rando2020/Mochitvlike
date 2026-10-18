@@ -129,7 +129,7 @@ begin
 
   return query select v_existing.revision, v_existing.seeds, v_existing.updated_at;
 end;
-$;
+$$;
 revoke all on function app_private.save_story_seed_plan_checked_v1(uuid,integer,uuid,jsonb,boolean) from public, anon;
 grant execute on function app_private.save_story_seed_plan_checked_v1(uuid,integer,uuid,jsonb,boolean) to authenticated;
 
