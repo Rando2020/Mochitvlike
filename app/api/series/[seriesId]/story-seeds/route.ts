@@ -4,7 +4,7 @@ import { getSeries } from "@/lib/series/persistence/getSeries";
 import { SeriesPersistenceError } from "@/lib/series/persistence/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readStoryPlan, writeStoryPlan, StoryPlanError } from "@/lib/story-seeds/persistence";
-import { StoryPlanSaveSchema } from "@/lib/story-seeds/schema";
+import { StoryPlanSaveSchema, validateStorySeeds } from "@/lib/story-seeds/schema";
 
 export const dynamic = "force-dynamic";
 const noStore = { "Cache-Control": "private, no-store" };
@@ -83,6 +83,7 @@ export async function PUT(
     const parsed = StoryPlanSaveSchema.safeParse(data);
     if (!parsed.success) return routeError(400, "STORY_INVALID_INPUT", "Check the story seed fields.");
     const { supabase, series } = await scope(seriesId);
+    validateStorySeeds(parsed.data.seeds, series.blueprint);
     const plan = await writeStoryPlan(supabase, seriesId, series.blueprint, parsed.data);
     return NextResponse.json({ plan }, { headers: noStore });
   } catch (error) {
