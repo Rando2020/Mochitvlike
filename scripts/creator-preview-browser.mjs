@@ -24,9 +24,10 @@ try {
     await page.getByLabel("Your idea").fill("The original healer story for hydration check");
     const nextStepButton = page.getByRole("button", { name: /Preview next steps/i });
     await nextStepButton.waitFor();
-    if (!await nextStepButton.isEnabled()) {
-      throw new Error(mode.name + " app is not hydrated: interactive create control stayed disabled. " + JSON.stringify({errors,failedNetwork,consoleErrors}));
-    }
+    await nextStepButton.click({ timeout: 25000 }).catch(() => {
+      throw new Error(mode.name + " interactive create never hydrated. " + JSON.stringify({errors,failedNetwork,consoleErrors}));
+    });
+    await page.getByText(/Your idea is ready for a story outline/i).waitFor();
     const mainNav = page.getByRole("navigation", {
       name: mode.name === "mobile" ? "Creator preview mobile navigation" : "Creator preview sections"
     });
