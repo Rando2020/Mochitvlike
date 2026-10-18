@@ -26,7 +26,9 @@ try {
     await page.screenshot({ path: "artifacts/creator-preview/" + mode.name + "-create.png", fullPage: true });
 
     await nav("Story");
-    await page.getByRole("heading", { name: /make every moment/i }).waitFor();
+    await page.screenshot({ path: "artifacts/creator-preview/" + mode.name + "-after-story-click.png", fullPage: true });
+    console.log("DEBUG", mode.name, "headings", await page.locator("h1,h2").allTextContents(), "pageerrors", errors);
+    await page.getByRole("heading", { name: /make every moment/i }).waitFor({ timeout: 12000 });
     await page.getByRole("button", { name: "Advanced" }).click();
     await page.getByLabel("Describe the moment").fill("The mentor reveals a difficult truth");
     await page.getByRole("button", { name: /Add story seed/i }).click();
