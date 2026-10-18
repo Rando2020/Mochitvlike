@@ -114,7 +114,7 @@ test("Story Architect: two real local Auth owners, durable saves, locks, CAS, id
     // Switching app sections must NOT discard an unsaved authoring draft.
     await page.getByRole("navigation", { name: "Creator preview sections" })
       .getByRole("button", { name: /Cast$/ }).click();
-    await expect(page.getByText(/Unsaved Story Architect changes are still here/)).toBeVisible().catch(() => {});
+    await expect(page.getByText(/Unsaved Story Architect changes are still here/)).toBeVisible();
     await page.getByRole("button", { name: /Return to Story Architect/ }).click();
     await expect(page.getByLabel("Describe your moment")).toHaveValue(additionalTitle);
     await page.getByRole("button", { name: /Add to draft/ }).click();
