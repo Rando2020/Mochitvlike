@@ -14,7 +14,7 @@ describe("creator experience preview", () => {
   });
   it("adds seeds in advanced mode, locks them, and never claims they were persisted", () => {
     render(<CreatorExperiencePreview blueprint={theWoundsWeKeep} />);
-    fireEvent.click(screen.getByRole("button", { name: "Story" }));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Creator preview sections" })).getByRole("button", { name: "Story" }));
     fireEvent.click(screen.getByRole("button", { name: "Advanced" }));
     fireEvent.change(screen.getByLabelText("Describe the moment"), { target: { value: "The companion discovers the secret" } });
     fireEvent.change(screen.getByLabelText("Story placement"), { target: { value: "MIDPOINT" } });
@@ -27,7 +27,7 @@ describe("creator experience preview", () => {
   });
   it("keeps conversation a labeled scripted simulation and character sharing private by default", () => {
     render(<CreatorExperiencePreview blueprint={theWoundsWeKeep} />);
-    fireEvent.click(screen.getByRole("button", { name: "Cast" }));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Creator preview sections" })).getByRole("button", { name: "Cast" }));
     expect(screen.getByText(/deterministic sample, not a connected ai chatbot/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /private not offered/i })).toHaveAttribute("aria-pressed", "true");
     fireEvent.change(screen.getByLabelText("Preview a conversation prompt"), { target: { value: "What do you fear?" } });
@@ -37,7 +37,7 @@ describe("creator experience preview", () => {
   });
   it("calculates illustrative compute quotes without allowing purchases", () => {
     render(<CreatorExperiencePreview blueprint={theWoundsWeKeep} />);
-    fireEvent.click(screen.getByRole("button", { name: "Coins" }));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Creator preview sections" })).getByRole("button", { name: "Coins" }));
     expect(screen.getByText(/no generation or credit charge/i)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Scene duration 5 seconds"), { target: { value: "10" } });
     expect(screen.getByText("28 coins")).toBeInTheDocument();
