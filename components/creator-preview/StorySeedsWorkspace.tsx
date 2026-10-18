@@ -19,7 +19,7 @@ function seedFrom(
   return { id: crypto.randomUUID(), title: title.trim(), placement, type, characterId, locked,
     setup: "", consequence: "", payoff: "" };
 }
-export function StorySeedsWorkspace({ seriesId, blueprint }: { seriesId: string; blueprint: SeriesBlueprint }) {
+export function StorySeedsWorkspace({ seriesId, blueprint, onDirtyChange }: { seriesId: string; blueprint: SeriesBlueprint; onDirtyChange?: (dirty: boolean) => void }) {
   const [saved, setSaved] = useState<StoryPlan | null>(null);
   const [draft, setDraft] = useState<StorySeed[]>([]);
   const [advanced, setAdvanced] = useState(false);
@@ -82,6 +82,19 @@ export function StorySeedsWorkspace({ seriesId, blueprint }: { seriesId: string;
   }, [url]);
 
   const changed = !!saved && JSON.stringify(saved.seeds) !== JSON.stringify(draft);
+  useEffect(() => {
+    onDirtyChange?.(changed);
+    return () => onDirtyChange?.(false);
+  }, [changed, onDirtyChange]);
+  useEffect(() => {
+    if (!changed) return;
+    const preventAccidentalLeave = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", preventAccidentalLeave);
+    return () => window.removeEventListener("beforeunload", preventAccidentalLeave);
+  }, [changed]);
   const needsReview = !!saved && lockedSeedChanges(saved.seeds, draft);
   const lockedCount = draft.filter((seed) => seed.locked).length;
   const hint = useMemo(() => {
@@ -273,9 +286,9 @@ export function StorySeedsWorkspace({ seriesId, blueprint }: { seriesId: string;
                 <p>{seed.title}</p>
                 {seed.consequence && <small>Change: {seed.consequence}</small>}
                 <div className={styles.cardActions}>
-                  <button type="button" aria-pressed={seed.locked} onClick={() => update(seed.id, { locked: !seed.locked })}>{seed.locked ? "🔒 Locked" : "🔓 Lock"}</button>
-                  <button type="button" onClick={() => setEditing(editing === seed.id ? null : seed.id)}>{editing === seed.id ? "Close" : "Edit"}</button>
-                  <button type="button" onClick={() => {
+                  <button type="button" aria-pressed={seed.locked} disabled={busy} onClick={() => update(seed.id, { locked: !seed.locked })}>{seed.locked ? "🔒 Locked" : "🔓 Lock"}</button>
+                  <button type="button" disabled={busy} onClick={() => setEditing(editing === seed.id ? null : seed.id)}>{editing === seed.id ? "Close" : "Edit"}</button>
+                  <button type="button" disabled={busy} onClick={() => {
                     setDraft((previous) => previous.filter((entry) => entry.id !== seed.id));
                     setAcknowledged(false); setPending(null);
                   }}>Remove</button>
