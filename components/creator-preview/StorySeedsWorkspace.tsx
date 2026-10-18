@@ -52,6 +52,10 @@ export function StorySeedsWorkspace({ seriesId, blueprint, onDirtyChange }: { se
     setDraft(plan.seeds);
     setPending(null);
     setEditing(null);
+    setNewTitle("");
+    setSetup("");
+    setConsequence("");
+    setPayoff("");
     setAcknowledged(false);
     setReloadConfirm(false);
     setNotice("");
@@ -81,7 +85,9 @@ export function StorySeedsWorkspace({ seriesId, blueprint, onDirtyChange }: { se
     return () => { active = false; };
   }, [url]);
 
-  const changed = !!saved && JSON.stringify(saved.seeds) !== JSON.stringify(draft);
+  const savedChanges = !!saved && JSON.stringify(saved.seeds) !== JSON.stringify(draft);
+  const hasUnaddedIdea = Boolean(newTitle.trim() || setup.trim() || consequence.trim() || payoff.trim());
+  const changed = savedChanges || hasUnaddedIdea;
   useEffect(() => {
     onDirtyChange?.(changed);
     return () => onDirtyChange?.(false);
@@ -194,7 +200,7 @@ export function StorySeedsWorkspace({ seriesId, blueprint, onDirtyChange }: { se
     }
   }
   function save() {
-    if (!saved || busy || !changed) return;
+    if (!saved || busy || !savedChanges) return;
     if (needsReview && !acknowledged) {
       setError("Review and confirm changes to the locked story moments first.");
       return;
@@ -311,7 +317,7 @@ export function StorySeedsWorkspace({ seriesId, blueprint, onDirtyChange }: { se
         {needsReview && <label className={styles.review}><input type="checkbox" checked={acknowledged} onChange={(e) => setAcknowledged(e.target.checked)}/> I reviewed the changes to my locked story moments and approve this new planning version.</label>}
         <div className={styles.saveActions}>
           {pending ? <button type="button" className={styles.primary} disabled={busy} onClick={() => void persist(pending)}>{busy ? "Checking…" : "Retry exact save"}</button>
-            : <button type="button" className={styles.primary} disabled={!changed || busy} onClick={save}>{busy ? "Saving…" : "Save story plan"}</button>}
+            : <button type="button" className={styles.primary} disabled={!savedChanges || busy} onClick={save}>{busy ? "Saving…" : "Save story plan"}</button>}
           <button className={styles.secondary} type="button" disabled={busy} onClick={refresh}>{reloadConfirm ? "Confirm discard & reload" : "Reload saved plan"}</button>
           {reloadConfirm && <button type="button" onClick={() => setReloadConfirm(false)}>Keep my draft</button>}
         </div>
