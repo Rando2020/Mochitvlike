@@ -13,10 +13,20 @@ try {
     const context = await browser.newContext(mode.context);
     const page = await context.newPage();
     const errors = [];
+    const failedNetwork = [];
+    const consoleErrors = [];
     page.on("pageerror", (error) => errors.push(error.message));
+    page.on("console", (msg) => { if (msg.type() === "error") consoleErrors.push(msg.text()); });
+    page.on("response", (response) => { if (response.status() >= 400) failedNetwork.push(response.status() + " " + response.url().slice(0,140)); });
     const response = await page.goto("http://127.0.0.1:3100/creator-preview", { waitUntil: "networkidle" });
     assert.equal(response?.status(), 200, mode.name + ": app should load");
     await page.getByRole("heading", { name: /every story starts/i }).waitFor();
+    await page.getByLabel("Your idea").fill("The original healer story for hydration check");
+    const nextStepButton = page.getByRole("button", { name: /Preview next steps/i });
+    await nextStepButton.waitFor();
+    if (!await nextStepButton.isEnabled()) {
+      throw new Error(mode.name + " app is not hydrated: interactive create control stayed disabled. " + JSON.stringify({errors,failedNetwork,consoleErrors}));
+    }
     const mainNav = page.getByRole("navigation", {
       name: mode.name === "mobile" ? "Creator preview mobile navigation" : "Creator preview sections"
     });
@@ -27,7 +37,7 @@ try {
 
     await nav("Story");
     await page.screenshot({ path: "artifacts/creator-preview/" + mode.name + "-after-story-click.png", fullPage: true });
-    console.log("DEBUG", mode.name, "headings", await page.locator("h1,h2").allTextContents(), "pageerrors", errors);
+    console.log("DEBUG", mode.name, "headings", await page.locator("h1,h2").allTextContents(), "pageerrors", errors, "failed", failedNetwork, "console", consoleErrors);
     await page.getByRole("heading", { name: /make every moment/i }).waitFor({ timeout: 12000 });
     await page.getByRole("button", { name: "Advanced" }).click();
     await page.getByLabel("Describe the moment").fill("The mentor reveals a difficult truth");
