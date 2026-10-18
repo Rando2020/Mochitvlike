@@ -1,3 +1,4 @@
+import { EMPTY_CHARACTER_DIRECTION } from "@/lib/character-direction/schema";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
@@ -11,6 +12,52 @@ const show=()=>render(<GuidedShowCreation creatorId="owner" providerReady={true}
 async function generate(){fireEvent.change(screen.getByLabelText("Describe your show"),{target:{value:idea}});fireEvent.click(screen.getByRole("button",{name:"Explore this show"}));await screen.findByRole("button",{name:"Save and open Studio"});}
 beforeEach(()=>{sessionStorage.clear();vi.clearAllMocks();});afterEach(()=>vi.restoreAllMocks());
 describe("guided creation",()=>{
+  it("bounds personality choices and preserves tag selections after failure and refresh",async()=>{
+    vi.spyOn(globalThis,"fetch").mockResolvedValue(new Response("{}",{status:503}));
+    const view=show();
+    fireEvent.click(screen.getByText("Main character direction · optional"));
+    for(const trait of ["Compassionate","Guarded","Analytical"])fireEvent.click(screen.getByRole("checkbox",{name:trait}));
+    expect(screen.getByRole("checkbox",{name:"Playful"})).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Body build"),{target:{value:"athletic"}});
+    fireEvent.change(screen.getByLabelText("Voice texture"),{target:{value:"warm"}});
+    fireEvent.change(screen.getByLabelText("Describe your show"),{target:{value:idea}});
+    fireEvent.click(screen.getByRole("button",{name:"Explore this show"}));
+    await screen.findByRole("alert");
+    await waitFor(()=>expect(sessionStorage.getItem("show-creation-v1:owner")).toContain('"body":"athletic"'));
+    view.unmount();show();
+    fireEvent.click(screen.getByText("Main character direction · optional"));
+    expect(screen.getByLabelText("Body build")).toHaveValue("athletic");
+    expect(screen.getByRole("checkbox",{name:"Guarded"})).toBeChecked();
+    expect(screen.getByLabelText("Voice texture")).toHaveValue("warm");
+  });
+  it("sends explicit direction, reviews it, and saves the same character tags",async()=>{
+    const tags={...EMPTY_CHARACTER_DIRECTION,body:"athletic" as const,voiceDelivery:"calm" as const};
+    const tagged=structuredClone(result);tagged.seriesBlueprint.cast[0].generationDirection=tags;
+    const fetcher=vi.spyOn(globalThis,"fetch").mockImplementation(async(url,options)=>{
+      if(url==="/api/series/generate")return new Response(JSON.stringify(tagged));
+      const body=JSON.parse(String(options?.body));
+      expect(body.seriesBlueprint.cast[0].generationDirection).toEqual(tags);
+      return new Response(JSON.stringify({series:{id:body.creationId}}));
+    });
+    show();fireEvent.click(screen.getByText("Main character direction · optional"));
+    fireEvent.change(screen.getByLabelText("Body build"),{target:{value:"athletic"}});
+    fireEvent.change(screen.getByLabelText("Voice delivery"),{target:{value:"calm"}});
+    await generate();
+    expect(JSON.parse(String(fetcher.mock.calls[0][1]?.body)).protagonistDirection).toEqual(tags);
+    expect(screen.getByText("Athletic")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button",{name:"Save and open Studio"}));
+    await screen.findByRole("link",{name:"Open saved Studio"});
+  });
+  it("rejects a direction response that loses selected character tags",async()=>{
+    vi.spyOn(globalThis,"fetch").mockResolvedValue(new Response(JSON.stringify(result)));
+    show();fireEvent.click(screen.getByText("Main character direction · optional"));
+    fireEvent.change(screen.getByLabelText("Body build"),{target:{value:"athletic"}});
+    fireEvent.change(screen.getByLabelText("Describe your show"),{target:{value:idea}});
+    fireEvent.click(screen.getByRole("button",{name:"Explore this show"}));
+    await screen.findByRole("alert");
+    expect(screen.queryByRole("button",{name:"Save and open Studio"})).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Body build")).toHaveValue("athletic");
+  });
   it("offers sign-in rather than a fake working generation action",()=>{
     render(<GuidedShowCreation creatorId={null} providerReady={true} />);
     expect(screen.getByRole("button",{name:"Explore this show"})).toBeDisabled();

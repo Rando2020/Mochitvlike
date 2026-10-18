@@ -43,6 +43,7 @@ export type ScriptContext = {
   cast: Array<{
     id: string;
     name: string;
+    creatorDirection?: { personality: string[]; visual: string[]; voice: string[] };
     personalityTraits: string[];
     communicationStyle: string;
     personality: string;

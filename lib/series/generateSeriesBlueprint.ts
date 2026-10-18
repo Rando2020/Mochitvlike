@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { z } from "zod";
-import { SeriesBlueprintSchema } from "./schema";
+import { compileCharacterDirection, hasCharacterDirection } from "@/lib/character-direction/compile";
+import { SeriesBlueprintGenerationSchema } from "./schema";
 import { SeriesIdeaRequestSchema, type SeriesIdeaRequest } from "./generationRequest";
 import { validateSeriesBlueprintForWrite } from "./persistence/validatePersistedSeries";
 
@@ -21,6 +22,7 @@ The protagonist needs a clear want, need, and internal conflict. Antagonists hav
 Use valid unique IDs and references throughout. World rules create problems. Enabled power systems need rules, costs, and limitations.
 Keep canon small; preserve mysteries. Do not resolve the premise in Episode 1. Start with HOOK or SETUP and end with a reveal, cliffhanger, emotional turn, action, or conflict.
 Use 30–120 second episodes and 8–20 episodes. Honor provided format preferences exactly.
+When provided, mainCharacterGuidance describes the protagonist only. Integrate it into personality, communication, and visual descriptions while preserving the premise. Other cast members remain distinct. Never infer personality or voice from body build, clothing, gender, or ethnicity.
 Select only studio features that serve this story, with no duplicates. Ask at most three meaningful clarification questions.
 Do not generate media, chat system prompts, avatars, or prompt instructions. Return only the required SeriesBlueprint.`;
 
@@ -39,9 +41,9 @@ class OpenAISeriesProvider implements SeriesBlueprintProvider {
       max_output_tokens: 18000,
       input: [
         { role: "developer", content: instructions + (candidate === undefined ? "" : " Repair the candidate once. Correct schema, references, invariants, and requested format; preserve valid creative choices.") },
-        { role: "user", content: JSON.stringify({ creatorInput: input, ...(candidate === undefined ? {} : { candidate }) }) }
+        { role: "user", content: JSON.stringify({ creatorInput: input, mainCharacterGuidance: input.protagonistDirection ? compileCharacterDirection(input.protagonistDirection) : null, ...(candidate === undefined ? {} : { candidate }) }) }
       ],
-      text: { format: { type: "json_schema", name: "series_blueprint", strict: true, schema: z.toJSONSchema(SeriesBlueprintSchema) } }
+      text: { format: { type: "json_schema", name: "series_blueprint", strict: true, schema: z.toJSONSchema(SeriesBlueprintGenerationSchema) } }
     });
     if (!response.output_text) throw new SeriesGenerationError("SERIES_GENERATION_FAILED");
     try { return JSON.parse(response.output_text) as unknown; } catch { return response.output_text; }
@@ -54,7 +56,12 @@ export async function generateSeriesBlueprint(rawInput: SeriesIdeaRequest, provi
   const input = SeriesIdeaRequestSchema.parse(rawInput);
   const active = provider ?? new OpenAISeriesProvider();
   function validate(candidate: unknown) {
-    const blueprint = validateSeriesBlueprintForWrite(candidate);
+    const blueprint = validateSeriesBlueprintForWrite(SeriesBlueprintGenerationSchema.parse(candidate));
+    if (input.protagonistDirection && hasCharacterDirection(input.protagonistDirection)) {
+      const protagonist = blueprint.cast.find(member => member.role === "PROTAGONIST")!;
+      protagonist.generationDirection = structuredClone(input.protagonistDirection);
+      validateSeriesBlueprintForWrite(blueprint);
+    }
     const format = blueprint.season.format;
     if ((input.preferences?.episodeLengthSeconds !== undefined && format.episodeLengthSeconds !== input.preferences.episodeLengthSeconds) ||
         (input.preferences?.targetEpisodeCount !== undefined && format.targetEpisodeCount !== input.preferences.targetEpisodeCount)) throw new Error("FORMAT_MISMATCH");
