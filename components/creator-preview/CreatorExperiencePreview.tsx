@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { SeriesBlueprint } from "@/lib/series/types";
 import styles from "./CreatorExperiencePreview.module.css";
+import { StorySeedsWorkspace } from "./StorySeedsWorkspace";
 
 type View = "watch" | "create" | "story" | "cast" | "rewards";
 type SeedType = "EVENT" | "REVEAL" | "RELATIONSHIP" | "ENDING";
@@ -108,7 +109,7 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
           <div className={styles.brand}><span className={styles.brandIcon}>✳</span><span>Creator Studio <small>EXPERIENCE CONCEPT</small></span></div>
           <div className={styles.headerRight}><span className={styles.previewPill}>● Interactive prototype</span>{seriesId ? <a className={styles.backLink} href={"/series/" + encodeURIComponent(seriesId)}>Existing studio ↗</a> : null}</div>
         </header>
-        <div className={styles.notice} role="status"><strong>UX preview only.</strong> Controls change this session's sample state. No saving, real character chat, sharing, coins, publishing, or AI/GPU generation occurs.</div>
+        <div className={styles.notice} role="status"><strong>{seriesId ? "Creator Studio preview." : "UX preview only."}</strong> {seriesId ? "The Story tab can save your own story seeds when its database migration is installed. Watch, Create, Cast and Coins are still concepts. No media jobs or paid inference occur." : "Controls change this session's sample state. No saving, real character chat, sharing, coins, publishing, or AI/GPU generation occurs."}</div>
         <main className={styles.content} key={view}>
           {view === "watch" && (
             <section className={styles.page}>
@@ -150,7 +151,8 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
               </div>
             </section>
           )}
-          {view === "story" && (
+          {view === "story" && seriesId && <StorySeedsWorkspace seriesId={seriesId} blueprint={blueprint} />}
+          {view === "story" && !seriesId && (
             <section className={styles.page}>
               <div className={styles.heading}><span className={styles.eyebrow}>STORY ARCHITECT · {blueprint.identity.title.toUpperCase()}</span><h1>Make every moment <em>mean something.</em></h1><p>Plant the seeds of your story. Lock the moments you can't imagine changing. The rest can grow around them.</p></div>
               <div className={styles.storyToolbar}><div><strong>{seeds.length} story seeds</strong><small>{lockedCount} locked · Session-only preview</small></div><div className={styles.segment} aria-label="Story editor mode"><button type="button" aria-pressed={!advanced} className={!advanced ? styles.selectedSegment : ""} onClick={() => setAdvanced(false)}>Guided</button><button type="button" aria-pressed={advanced} className={advanced ? styles.selectedSegment : ""} onClick={() => setAdvanced(true)}>Advanced</button></div></div>
