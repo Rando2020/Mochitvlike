@@ -7,6 +7,7 @@ import { SeriesPersistenceError } from "@/lib/series/persistence/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const CreateSeriesRequestSchema = z.object({
+  creationId: z.string().uuid().optional(),
   seriesBlueprint: SeriesBlueprintSchema,
   metadata: z.object({
     source: z.enum(["llm", "repaired", "fallback"]),
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     const series = await createSeriesRecord(supabase, {
       creatorId: user.id,
+      creationId: parsed.data.creationId,
       seriesBlueprint: parsed.data.seriesBlueprint,
       metadata: parsed.data.metadata
     });

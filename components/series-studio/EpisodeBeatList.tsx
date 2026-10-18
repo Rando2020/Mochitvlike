@@ -18,12 +18,14 @@ const BEAT_LABELS: Record<SeriesBlueprint["episodeOne"]["beats"][number]["type"]
 export function EpisodeBeatList({
   blueprint,
   sceneSummaries,
+  pending = false,
   expandedBeatId,
   onToggleBeat,
   onDevelopScene
 }: {
   blueprint: SeriesBlueprint;
   sceneSummaries: SceneSummary[];
+  pending?: boolean;
   expandedBeatId: string | null;
   onToggleBeat: (beatId: string) => void;
   onDevelopScene?: (beatId: string) => void | Promise<void>;
@@ -73,6 +75,7 @@ export function EpisodeBeatList({
                 <button
                   className={styles.compactButton}
                   type="button"
+                  disabled={pending}
                   onClick={() => void onDevelopScene?.(beat.id)}
                 >
                   {scene ? "Continue Scene" : "Develop Scene"}
