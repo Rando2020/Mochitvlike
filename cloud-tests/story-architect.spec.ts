@@ -30,7 +30,7 @@ test("Story Architect: two real local Auth owners, durable saves, locks, CAS, id
   const rivalTitle = "A rival ending that should not overwrite";
   const additionalTitle = "A prophecy sets up Orin's decision";
   let otherContext: Awaited<ReturnType<typeof browser.newContext>> | null = null;
-  let secondTab: Awaited<ReturnType<typeof page.context>["newPage"]> | null = null;
+  let secondTab: typeof page | null = null;
 
   const navStory = async (p: typeof page, mobile = false) => {
     const label = mobile ? "Creator preview mobile navigation" : "Creator preview sections";
