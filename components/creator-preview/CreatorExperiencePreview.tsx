@@ -54,7 +54,6 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
   const [sharing, setSharing] = useState<"private" | "cameo" | "guest">("private");
   const [duration, setDuration] = useState(5);
   const [quality, setQuality] = useState<"standard" | "cinematic">("standard");
-  const [savedShow, setSavedShow] = useState(false);
   const [idea, setIdea] = useState("");
   const [showDetails, setShowDetails] = useState(false);
   const protagonist = blueprint.cast.find((member) => member.role === "PROTAGONIST") ?? blueprint.cast[0];
