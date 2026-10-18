@@ -87,7 +87,7 @@ test("Story Architect: two real local Auth owners, durable saves, locks, CAS, id
       await route.fulfill({ status: 503, json: { error: { code: "RESPONSE_LOST" } } });
     });
     await page.getByRole("button", { name: "Save story plan" }).click();
-    await expect(page.getByRole("alert")).toContainText("Retry");
+    await expect(page.getByRole("alert").filter({ hasText: "Save could not be confirmed" })).toContainText("Retry");
     await page.getByRole("button", { name: "Retry exact save" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Story seeds saved" })).toBeVisible();
     const initialPlan = await page.request.get("/api/series/" + seriesId + "/story-seeds");
@@ -124,7 +124,7 @@ test("Story Architect: two real local Auth owners, durable saves, locks, CAS, id
     await secondTab.getByLabel("Describe your moment").fill(rivalTitle);
     await secondTab.getByRole("button", { name: /Add to draft/ }).click();
     await secondTab.getByRole("button", { name: "Save story plan" }).click();
-    await expect(secondTab.getByRole("alert")).toContainText("Your draft is still here");
+    await expect(secondTab.getByRole("alert").filter({ hasText: "Your saved story plan changed elsewhere" })).toContainText("Your draft is still here");
     await expect(secondTab.getByText(rivalTitle)).toBeVisible();
     const afterConflict = await secondTab.request.get("/api/series/" + seriesId + "/story-seeds");
     expect((await afterConflict.json()).plan.revision).toBe(2);
@@ -139,7 +139,7 @@ test("Story Architect: two real local Auth owners, durable saves, locks, CAS, id
     await locked.getByRole("button", { name: "Remove" }).click();
     await expect(page.getByRole("checkbox", { name: /reviewed the changes to my locked story moments/i })).toBeVisible();
     await page.getByRole("button", { name: "Save story plan" }).click();
-    await expect(page.getByRole("alert")).toContainText("Review and confirm");
+    await expect(page.getByRole("alert").filter({ hasText: "Review and confirm" })).toContainText("Review and confirm");
     await page.getByRole("checkbox", { name: /reviewed the changes to my locked story moments/i }).check();
     await page.getByRole("button", { name: "Save story plan" }).click();
     await expect(page.getByText("Saved revision 3")).toBeVisible();
