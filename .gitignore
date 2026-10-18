@@ -11,3 +11,10 @@ artifacts/
 ml/visual-evaluation/.pytest_cache/
 ml/visual-evaluation/**/__pycache__/
 ml/visual-evaluation/.venv/
+
+.env.*
+!.env.example
+supabase/.temp/
+test-results/
+playwright-report/
+*.tsbuildinfo

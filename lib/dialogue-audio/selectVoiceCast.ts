@@ -1,3 +1,4 @@
+import { compileCharacterDirection } from "@/lib/character-direction/compile";
 import {createHash} from "node:crypto";
 import type {SeriesBlueprint} from "@/lib/series/types";
 import type {EpisodeTimeline} from "@/lib/episodes/assembly/types";
@@ -12,9 +13,12 @@ function styleFor(member:SeriesBlueprint["cast"][number]){
   const text=[member.role,member.storyFunction,...member.personalityTraits,member.characterSheetSeed.communicationStyle].join(" ").toLowerCase();
   const energetic=/energetic|bold|impulsive|playful|excitable|intense|fiery/.test(text);
   const restrained=/calm|reserved|stoic|measured|quiet|thoughtful|gentle/.test(text);
+  const explicit = member.generationDirection;
+  const voiceGuidance = explicit ? compileCharacterDirection(explicit).voice : [];
+  const defaultStyle = energetic?"animated and conversational":restrained?"measured and natural":"natural and characterful";
   return{
-    speakingStyle:energetic?"animated and conversational":restrained?"measured and natural":"natural and characterful",
-    energy:energetic?"high":restrained?"low-to-moderate":"moderate",
+    speakingStyle:voiceGuidance.length ? voiceGuidance.join(" ") + (explicit?.voiceDelivery ? "" : " " + defaultStyle) :defaultStyle,
+    energy:explicit?.voiceDelivery === "animated" ? "high" : explicit?.voiceDelivery === "calm" ? "low-to-moderate" : explicit?.voiceDelivery === "firm" ? "moderate" : energetic?"high":restrained?"low-to-moderate":"moderate",
     emotionalRange:/volatile|dramatic|expressive|emotional/.test(text)?"wide":"balanced"
   };
 }

@@ -1,0 +1,64 @@
+name: Database Release
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Database environment
+        type: choice
+        options: [preview, production]
+        default: preview
+      operation:
+        description: Plan changes first, then apply the reviewed plan
+        type: choice
+        options: [plan, apply]
+        default: plan
+      reviewed_sha:
+        description: Exact full commit SHA to plan or apply (must match selected branch)
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: database-release-${{ inputs.target }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.target }}
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+      PRODUCTION_REF: ${{ vars.SUPABASE_PRODUCTION_PROJECT_REF }}
+      MIGRATION_MODE: ${{ vars.MIGRATION_DEPLOYMENT_MODE }}
+      HISTORY_VERIFIED: ${{ vars.MIGRATION_HISTORY_VERIFIED }}
+      REVIEWED_SHA: ${{ inputs.reviewed_sha }}
+      TARGET: ${{ inputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check release boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$MIGRATION_MODE" = actions || { echo 'Choose one migration deployer. Set MIGRATION_DEPLOYMENT_MODE=actions only after disabling automatic production migration deployment.'; exit 1; }
+          test "$HISTORY_VERIFIED" = true || { echo 'Verify remote schema and migration history before enabling this workflow.'; exit 1; }
+          test "$REVIEWED_SHA" = "$GITHUB_SHA" || { echo 'Selected branch differs from the reviewed commit. Run a new plan.'; exit 1; }
+          [[ "$PROJECT_REF" =~ ^[a-z]{20}$ ]] && [[ "$PRODUCTION_REF" =~ ^[a-z]{20}$ ]]
+          test -n "$SUPABASE_ACCESS_TOKEN" && test -n "$SUPABASE_DB_PASSWORD"
+          if [ "$TARGET" = production ]; then
+            test "$GITHUB_REF" = refs/heads/main
+            test "$PROJECT_REF" = "$PRODUCTION_REF"
+          else
+            test "$PROJECT_REF" != "$PRODUCTION_REF"
+          fi
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0
+      - name: Link selected database
+        run: supabase link --project-ref "$PROJECT_REF"
+      - name: Show pending changes
+        run: supabase db push --dry-run
+      - name: Apply reviewed migrations
+        if: inputs.operation == 'apply'
+        run: supabase db push

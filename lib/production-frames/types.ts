@@ -8,6 +8,9 @@ export type ProductionReferenceAsset={
  id:string;type:ProductionReferenceType;assetUrl:string;checksum:string;source:ProductionReferenceSource;
  approved:boolean;benchmarkOnly:boolean;creatorApproved:boolean;characterId:string|null;abilityId:string|null;
  modelCompatibility:string[];
+ // Persistence-only revision metadata. Compiler strips this from immutable
+ // provider specs so existing inference contracts and historical jobs stay valid.
+ version?:number;
  status?:ProductionReferenceStatus;storagePath?:string;referenceRole?:CharacterReferenceRole|null;abilitySlot?:ReferenceSheetSlot|null;
  locationId?:string|null;propId?:string|null;provenance?:ReferenceProvenance;
 };
