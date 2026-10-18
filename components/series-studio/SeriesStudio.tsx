@@ -170,6 +170,11 @@ export function SeriesStudio({
           {activeTab === "studio" ? (
             <div className={styles.tabScene} data-testid="studio-tab">
               {header}
+              <div className={styles.contextualEmpty}>
+                <strong>Explore the next Creator Studio.</strong>{" "}
+                <a className={styles.compactButton} href={"/series/" + encodeURIComponent(seriesId) + "/creator-preview"}>Open interactive UX preview ↗</a>
+                <p>Story seeds, character rehearsal, chibi direction, crossovers and production budgets. Concept only, no edits saved.</p>
+              </div>
               <ClarificationCard blueprint={blueprint} onAnswer={onClarificationAnswer} />
               <div className={styles.dashboardGrid}>
                 <div className={styles.dashboardPrimary}>
