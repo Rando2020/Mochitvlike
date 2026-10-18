@@ -21,7 +21,7 @@ describe("Story Seed validation", () => {
     expect(() => validateStorySeeds([{ ...seed, characterId: "foreign" }], theWoundsWeKeep)).toThrow();
     expect(() => validateStorySeeds([seed, seed], theWoundsWeKeep)).toThrow();
     expect(() => StoryPlanSaveSchema.parse({
-      requestId: crypto.randomUUID(), expectedRevision: 0, acknowledgeLockedChanges: false,
+      requestId: "22222222-2222-4222-8222-222222222222", expectedRevision: 0, acknowledgeLockedChanges: false,
       seeds: [{ ...seed, creatorId: "spoof" }]
     })).toThrow();
   });
