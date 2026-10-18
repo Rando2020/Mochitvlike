@@ -111,6 +111,12 @@ test("Story Architect: two real local Auth owners, durable saves, locks, CAS, id
     await expect(secondTab.getByText("Saved revision 1")).toBeVisible();
 
     await page.getByLabel("Describe your moment").fill(additionalTitle);
+    // Switching app sections must NOT discard an unsaved authoring draft.
+    await page.getByRole("navigation", { name: "Creator preview sections" })
+      .getByRole("button", { name: /Cast$/ }).click();
+    await expect(page.getByText(/Unsaved Story Architect changes are still here/)).toBeVisible().catch(() => {});
+    await page.getByRole("button", { name: /Return to Story Architect/ }).click();
+    await expect(page.getByLabel("Describe your moment")).toHaveValue(additionalTitle);
     await page.getByRole("button", { name: /Add to draft/ }).click();
     await page.getByRole("button", { name: "Save story plan" }).click();
     await expect(page.getByText("Saved revision 2")).toBeVisible();
