@@ -29,7 +29,7 @@ describe("creator experience preview", () => {
     render(<CreatorExperiencePreview blueprint={theWoundsWeKeep} />);
     fireEvent.click(within(screen.getByRole("navigation", { name: "Creator preview sections" })).getByRole("button", { name: /Cast$/ }));
     expect(screen.getByText(/deterministic sample, not a connected ai chatbot/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /private not offered/i })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /^Private/ })).toHaveAttribute("aria-pressed", "true");
     fireEvent.change(screen.getByLabelText("Preview a conversation prompt"), { target: { value: "What do you fear?" } });
     fireEvent.click(screen.getByRole("button", { name: /send/i }));
     expect(screen.getByText("What do you fear?")).toBeInTheDocument();
