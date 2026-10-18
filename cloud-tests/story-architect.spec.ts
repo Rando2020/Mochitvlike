@@ -102,13 +102,13 @@ test("Story Architect: two real local Auth owners, durable saves, locks, CAS, id
     await page.reload();
     await navStory(page);
     await expect(page.locator("article").filter({ hasText: seedTitle })).toBeVisible();
-    await expect(page.getByText("Saved revision 1")).toBeVisible();
+    await expect(page.getByText("Saved revision 1").first()).toBeVisible();
 
     // Two open signed-in tabs load the same revision; only the first may advance.
     secondTab = await page.context().newPage();
     await secondTab.goto("/series/" + seriesId + "/creator-preview");
     await navStory(secondTab);
-    await expect(secondTab.getByText("Saved revision 1")).toBeVisible();
+    await expect(secondTab.getByText("Saved revision 1").first()).toBeVisible();
 
     await page.getByLabel("Describe your moment").fill(additionalTitle);
     // Switching app sections must NOT discard an unsaved authoring draft.
@@ -119,7 +119,7 @@ test("Story Architect: two real local Auth owners, durable saves, locks, CAS, id
     await expect(page.getByLabel("Describe your moment")).toHaveValue(additionalTitle);
     await page.getByRole("button", { name: /Add to draft/ }).click();
     await page.getByRole("button", { name: "Save story plan" }).click();
-    await expect(page.getByText("Saved revision 2")).toBeVisible();
+    await expect(page.getByText("Saved revision 2").first()).toBeVisible();
 
     await secondTab.getByLabel("Describe your moment").fill(rivalTitle);
     await secondTab.getByRole("button", { name: /Add to draft/ }).click();
@@ -142,7 +142,7 @@ test("Story Architect: two real local Auth owners, durable saves, locks, CAS, id
     await expect(page.getByRole("alert").filter({ hasText: "Review and confirm" })).toContainText("Review and confirm");
     await page.getByRole("checkbox", { name: /reviewed the changes to my locked story moments/i }).check();
     await page.getByRole("button", { name: "Save story plan" }).click();
-    await expect(page.getByText("Saved revision 3")).toBeVisible();
+    await expect(page.getByText("Saved revision 3").first()).toBeVisible();
     await page.screenshot({ path: "test-results/story-architect-auth-desktop.png", fullPage: true });
 
     const savedData = await page.request.get("/api/series/" + seriesId + "/story-seeds");
@@ -161,7 +161,7 @@ test("Story Architect: two real local Auth owners, durable saves, locks, CAS, id
     await signIn(page, userAEmail);
     await page.goto("/series/" + seriesId + "/creator-preview");
     await navStory(page);
-    await expect(page.getByText("Saved revision 3")).toBeVisible();
+    await expect(page.getByText("Saved revision 3").first()).toBeVisible();
 
     // Real mobile navigation and saved Story Architect after a login cycle.
     await page.setViewportSize({ width: 390, height: 844 });
