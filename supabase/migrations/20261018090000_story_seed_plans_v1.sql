@@ -22,8 +22,13 @@ create policy "story_seed_plans_select_own" on public.story_seed_plans
 revoke all on public.story_seed_plans from public, anon, authenticated;
 grant select on public.story_seed_plans to authenticated;
 
--- RLS only exposes reads. All writes must pass this authenticated, atomic CAS boundary.
-create or replace function public.save_story_seed_plan_v1(
+-- RLS only exposes reads. A privileged atomic writer lives in a private,
+-- non-PostgREST schema. Keep all pre-existing PUBLIC security-definer
+-- routine expectations intact and prevent accidental API exposure.
+create schema if not exists app_private;
+revoke all on schema app_private from public, anon;
+grant usage on schema app_private to authenticated;
+create or replace function app_private.save_story_seed_plan_checked_v1(
   p_series_id uuid,
   p_expected_revision integer,
   p_request_id uuid,
@@ -124,7 +129,24 @@ begin
 
   return query select v_existing.revision, v_existing.seeds, v_existing.updated_at;
 end;
-$$;
+$;
+revoke all on function app_private.save_story_seed_plan_checked_v1(uuid,integer,uuid,jsonb,boolean) from public, anon;
+grant execute on function app_private.save_story_seed_plan_checked_v1(uuid,integer,uuid,jsonb,boolean) to authenticated;
+
+-- The public RPC runs as the caller and can invoke only the guarded private
+-- writer, which verifies auth.uid(), series ownership, row state and payload.
+create or replace function public.save_story_seed_plan_v1(
+  p_series_id uuid,
+  p_expected_revision integer,
+  p_request_id uuid,
+  p_seeds jsonb,
+  p_acknowledge_locked_change boolean default false
+)
+returns table(revision integer, seeds jsonb, updated_at timestamptz)
+language sql security invoker set search_path = ''
+as $sql$
+  select * from app_private.save_story_seed_plan_checked_v1($1,$2,$3,$4,$5);
+$sql$;
 revoke all on function public.save_story_seed_plan_v1(uuid,integer,uuid,jsonb,boolean) from public, anon;
 grant execute on function public.save_story_seed_plan_v1(uuid,integer,uuid,jsonb,boolean) to authenticated;
 
