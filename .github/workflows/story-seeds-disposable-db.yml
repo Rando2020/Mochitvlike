@@ -1,0 +1,46 @@
+name: Story Seeds Disposable Database
+on:
+  push:
+    branches:
+      - "feature/story-architect-persistence-v1"
+      - "feature/creator-preview-integration-v1"
+  pull_request:
+    paths:
+      - "supabase/migrations/*story_seed*"
+      - "supabase/tests/story_seed_disposable.sql"
+      - ".github/workflows/story-seeds-disposable-db.yml"
+permissions:
+  contents: read
+jobs:
+  isolated-sql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: story_seed_disposable
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: story_seed_disposable
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+      - name: Run actual Story Seed SQL against disposable database
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/story_seed_disposable.sql
