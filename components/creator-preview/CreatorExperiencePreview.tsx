@@ -41,6 +41,12 @@ function exampleResponse(character: SeriesBlueprint["cast"][number]): string {
 }
 export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: SeriesBlueprint; seriesId?: string }) {
   const [view, setView] = useState<View>("create");
+  const [storyWasOpened, setStoryWasOpened] = useState(false);
+  const [storyHasUnsavedChanges, setStoryHasUnsavedChanges] = useState(false);
+  function changeView(next: View) {
+    if (next === "story") setStoryWasOpened(true);
+    setView(next);
+  }
   const [advanced, setAdvanced] = useState(false);
   const [seeds, setSeeds] = useState<Seed[]>(() => initialSeeds(blueprint));
   const [draft, setDraft] = useState("");
@@ -100,7 +106,7 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
           {NAV.map((item) => (
             <button key={item.id} type="button" aria-current={view === item.id ? "page" : undefined}
               className={view === item.id ? styles.railActive : styles.railButton}
-              onClick={() => setView(item.id)}><span>{item.symbol}</span>{item.label}</button>
+              onClick={() => changeView(item.id)}><span>{item.symbol}</span>{item.label}</button>
           ))}
         </nav>
       </aside>
@@ -110,7 +116,12 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
           <div className={styles.headerRight}><span className={styles.previewPill}>● Interactive prototype</span>{seriesId ? <a className={styles.backLink} href={"/series/" + encodeURIComponent(seriesId)}>Existing studio ↗</a> : null}</div>
         </header>
         <div className={styles.notice} role="status"><strong>{seriesId ? "Creator Studio preview." : "UX preview only."}</strong> {seriesId ? "The Story tab can save your own story seeds when its database migration is installed. Watch, Create, Cast and Coins are still concepts. No media jobs or paid inference occur." : "Controls change this session's sample state. No saving, real character chat, sharing, coins, publishing, or AI/GPU generation occurs."}</div>
-        <main className={styles.content} key={view}>
+        {seriesId && storyHasUnsavedChanges && view !== "story" && (
+          <div className={styles.notice} role="status"><strong>Unsaved Story Architect changes are still here.</strong> Switch back to save or review them.{" "}
+            <button type="button" onClick={() => changeView("story")}>Return to Story Architect ↗</button>
+          </div>
+        )}
+        <main className={styles.content}>
           {view === "watch" && (
             <section className={styles.page}>
               <div className={styles.heading}><span className={styles.eyebrow}>DISCOVER STORIES</span><h1>Find a world worth <em>falling into.</em></h1><p>Watch original stories and discover the creators behind them. Media playback and community feeds are future integrations.</p></div>
@@ -118,15 +129,15 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
                 <div className={styles.poster}><div className={styles.posterArt}><span>✺</span><i>EVERY WOUND<br/>LEAVES AN ECHO.</i></div></div>
                 <div className={styles.posterCopy}><span className={styles.eyebrow}>FEATURED CONCEPT · DARK FANTASY</span><h2>{blueprint.identity.title}</h2><p>{blueprint.identity.logline}</p>
                   <div className={styles.chips}><span>Short series</span><span>Character-driven</span><span>Fantasy</span></div>
-                  <button type="button" className={styles.primary} onClick={() => setView("story")}>Explore this story <span>↗</span></button>
+                  <button type="button" className={styles.primary} onClick={() => changeView("story")}>Explore this story <span>↗</span></button>
                   <span className={styles.micro}>Storyboard preview, not playable media</span>
                 </div>
               </div>
               <div className={styles.sectionHead}><h2>What makes a story stay with you?</h2><p>Stories, characters and creators, all connected.</p></div>
               <div className={styles.threeColumns}>
                 <article className={styles.miniCard}><span className={styles.bigIcon}>◇</span><h3>Follow the story</h3><p>Episodes, character arcs and meaningful turning points.</p></article>
-                <article className={styles.miniCard}><span className={styles.bigIcon}>◉</span><h3>Meet the cast</h3><p>Explore approved character profiles and conversations.</p><button type="button" onClick={() => setView("cast")}>View cast ↗</button></article>
-                <article className={styles.miniCard}><span className={styles.bigIcon}>✦</span><h3>Make your own</h3><p>Start from one idea or build your whole universe.</p><button type="button" onClick={() => setView("create")}>Start creating ↗</button></article>
+                <article className={styles.miniCard}><span className={styles.bigIcon}>◉</span><h3>Meet the cast</h3><p>Explore approved character profiles and conversations.</p><button type="button" onClick={() => changeView("cast")}>View cast ↗</button></article>
+                <article className={styles.miniCard}><span className={styles.bigIcon}>✦</span><h3>Make your own</h3><p>Start from one idea or build your whole universe.</p><button type="button" onClick={() => changeView("create")}>Start creating ↗</button></article>
               </div>
             </section>
           )}
@@ -139,19 +150,19 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
                   <label className={styles.fieldLabel} htmlFor="preview-idea">Your idea</label>
                   <textarea id="preview-idea" maxLength={1000} value={idea} onChange={(event) => setIdea(event.target.value)} placeholder="A healer discovers every injury he cures turns into a creature inside him…" rows={4}/>
                   <div className={styles.formFooter}><span>{idea.length} / 1000</span><button className={styles.primary} type="button" disabled={!idea.trim()} onClick={() => setShowDetails(true)}>Preview next steps ✦</button></div>
-                  {showDetails && <div className={styles.inlineInfo} role="status"><strong>Your idea is ready for a story outline.</strong><p>In the live flow, Show Genesis would turn this into a validated proposal, ask for approval, and save it. This preview does not submit or persist your idea.</p><button type="button" onClick={() => setView("story")}>Explore Story Architect ↗</button></div>}
+                  {showDetails && <div className={styles.inlineInfo} role="status"><strong>Your idea is ready for a story outline.</strong><p>In the live flow, Show Genesis would turn this into a validated proposal, ask for approval, and save it. This preview does not submit or persist your idea.</p><button type="button" onClick={() => changeView("story")}>Explore Story Architect ↗</button></div>}
                 </div>
-                <div className={styles.spotlightCard}><span className={styles.eyebrow}>DIRECTOR'S STUDIO</span><span className={styles.spotlightGlyph}>✳</span><h2>You imagine the moments. We'll help you connect them.</h2><p>Build plot seeds, interview characters, develop relationships, and design the performances that bring them to life.</p><button type="button" className={styles.lightButton} onClick={() => {setView("story");setAdvanced(true);}}>Enter Story Architect ↗</button></div>
+                <div className={styles.spotlightCard}><span className={styles.eyebrow}>DIRECTOR'S STUDIO</span><span className={styles.spotlightGlyph}>✳</span><h2>You imagine the moments. We'll help you connect them.</h2><p>Build plot seeds, interview characters, develop relationships, and design the performances that bring them to life.</p><button type="button" className={styles.lightButton} onClick={() => {changeView("story");setAdvanced(true);}}>Enter Story Architect ↗</button></div>
               </div>
               <div className={styles.sectionHead}><h2>Your creative toolkit</h2><p>One canon, many ways to make something.</p></div>
               <div className={styles.threeColumns}>
-                <article className={styles.miniCard}><span className={styles.bigIcon}>◇</span><h3>Plot the turning points</h3><p>Work backwards from your ending, connect events, lock your must-haves.</p><button type="button" onClick={() => setView("story")}>Story architect ↗</button></article>
-                <article className={styles.miniCard}><span className={styles.bigIcon}>◉</span><h3>Bring characters to life</h3><p>Develop personality, voice, expressions and chibi performances.</p><button type="button" onClick={() => setView("cast")}>Cast workshop ↗</button></article>
-                <article className={styles.miniCard}><span className={styles.bigIcon}>◎</span><h3>Plan your production</h3><p>Quote costly animation before spending any production credits.</p><button type="button" onClick={() => setView("rewards")}>Credit preview ↗</button></article>
+                <article className={styles.miniCard}><span className={styles.bigIcon}>◇</span><h3>Plot the turning points</h3><p>Work backwards from your ending, connect events, lock your must-haves.</p><button type="button" onClick={() => changeView("story")}>Story architect ↗</button></article>
+                <article className={styles.miniCard}><span className={styles.bigIcon}>◉</span><h3>Bring characters to life</h3><p>Develop personality, voice, expressions and chibi performances.</p><button type="button" onClick={() => changeView("cast")}>Cast workshop ↗</button></article>
+                <article className={styles.miniCard}><span className={styles.bigIcon}>◎</span><h3>Plan your production</h3><p>Quote costly animation before spending any production credits.</p><button type="button" onClick={() => changeView("rewards")}>Credit preview ↗</button></article>
               </div>
             </section>
           )}
-          {view === "story" && seriesId && <StorySeedsWorkspace seriesId={seriesId} blueprint={blueprint} />}
+          {seriesId && storyWasOpened && <div hidden={view !== "story"}><StorySeedsWorkspace seriesId={seriesId} blueprint={blueprint} onDirtyChange={setStoryHasUnsavedChanges}/></div>}
           {view === "story" && !seriesId && (
             <section className={styles.page}>
               <div className={styles.heading}><span className={styles.eyebrow}>STORY ARCHITECT · {blueprint.identity.title.toUpperCase()}</span><h1>Make every moment <em>mean something.</em></h1><p>Plant the seeds of your story. Lock the moments you can't imagine changing. The rest can grow around them.</p></div>
@@ -169,7 +180,7 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
                   {seedError && <p className={styles.error} role="alert">{seedError}</p>}
                   <div className={styles.formFooter}><span>Uncommitted concept</span><button className={styles.primary} type="button" onClick={() => addSeed()}>Add story seed +</button></div>
                 </div>
-                <aside className={styles.assistantPanel}><span className={styles.eyebrow}>WRITER'S ROOM</span><div className={styles.assistantAvatar}>✦</div><h3>Need help connecting the dots?</h3><p>In the future, your writing assistant can identify missing setup, explore motivations, and suggest emotional payoffs without changing locked canon.</p><div className={styles.suggestion}>Try this prompt:<strong>“I know my ending. Help me earn it without making the twist obvious.”</strong></div><button type="button" onClick={() => {setView("cast");setChatMode("director");}}>Explore director chat ↗</button></aside>
+                <aside className={styles.assistantPanel}><span className={styles.eyebrow}>WRITER'S ROOM</span><div className={styles.assistantAvatar}>✦</div><h3>Need help connecting the dots?</h3><p>In the future, your writing assistant can identify missing setup, explore motivations, and suggest emotional payoffs without changing locked canon.</p><div className={styles.suggestion}>Try this prompt:<strong>“I know my ending. Help me earn it without making the twist obvious.”</strong></div><button type="button" onClick={() => {changeView("cast");setChatMode("director");}}>Explore director chat ↗</button></aside>
               </div>
               <div className={styles.sectionHead}><h2>Your story map</h2><p>{advanced ? "Organized by narrative placement." : "The events you've imagined so far."}</p></div>
               <div className={styles.timeline}>
@@ -209,7 +220,7 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
         </main>
         <footer className={styles.footer}><span>Story first. Characters always. Production with purpose.</span><span>{demo ? "Demo blueprint" : "Owned series read-only preview"} · Not production features</span></footer>
       </div>
-      <nav className={styles.mobileNav} aria-label="Creator preview mobile navigation">{NAV.map((item) => <button key={item.id} type="button" aria-current={view === item.id ? "page" : undefined} className={view === item.id ? styles.mobileActive : styles.mobileButton} onClick={() => setView(item.id)}><span>{item.symbol}</span>{item.label}</button>)}</nav>
+      <nav className={styles.mobileNav} aria-label="Creator preview mobile navigation">{NAV.map((item) => <button key={item.id} type="button" aria-current={view === item.id ? "page" : undefined} className={view === item.id ? styles.mobileActive : styles.mobileButton} onClick={() => changeView(item.id)}><span>{item.symbol}</span>{item.label}</button>)}</nav>
     </div>
   );
 }
