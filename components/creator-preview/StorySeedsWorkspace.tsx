@@ -195,7 +195,7 @@ export function StorySeedsWorkspace({ seriesId, blueprint }: { seriesId: string;
     void load().catch((caught) => setError(describeProblem(caught))).finally(() => setBusy(false));
   }
   if (loading) return <section aria-live="polite" className={styles.loading}>Opening your saved story plan…</section>;
-  if (!saved) return <section className={styles.loading} role="alert"><h2>Story saving isn't connected yet</h2><p>{error}</p><p>The rest of the preview remains available without changing your show.</p><button type="button" onClick={() => { setLoading(true); setError(""); }}>Retry the Story tab</button></section>;
+  if (!saved) return <section className={styles.loading} role="alert"><h2>Story saving isn't connected yet</h2><p>{error}</p><p>The rest of the preview remains available without changing your show.</p><button type="button" onClick={() => { setLoading(true); setError(""); void load().catch((caught) => setError(describeProblem(caught))).finally(() => setLoading(false)); }}>Retry the Story tab</button></section>;
 
   return (
     <section className={base.page}>
@@ -259,7 +259,7 @@ export function StorySeedsWorkspace({ seriesId, blueprint }: { seriesId: string;
       {!draft.length && <div className={styles.empty}>
         <div className={styles.glow}>◇</div>
         <h2>Your story starts with one turning point.</h2>
-        <p>Or start with three moments already in your approved season outline. They will be suggested draft seeds, not automatically made canon.</p>
+        <p>Or start with three moments already in your existing season outline. They will be suggested draft seeds, not automatically made canon.</p>
         <button className={styles.secondary} type="button" onClick={importOutline}>Start from my season outline</button>
       </div>}
       {!!draft.length && <>
