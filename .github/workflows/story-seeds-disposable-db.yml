@@ -7,7 +7,7 @@ on:
   pull_request:
     paths:
       - "supabase/migrations/*story_seed*"
-      - "supabase/tests/story_seed_disposable.sql"
+      - "supabase/ci/story_seed_disposable.sql"
       - ".github/workflows/story-seeds-disposable-db.yml"
 permissions:
   contents: read
@@ -43,4 +43,4 @@ jobs:
             sudo apt-get install -y postgresql-client
           fi
       - name: Run actual Story Seed SQL against disposable database
-        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/story_seed_disposable.sql
+        run: psql -v ON_ERROR_STOP=1 -f supabase/ci/story_seed_disposable.sql
