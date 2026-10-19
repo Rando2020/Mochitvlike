@@ -192,6 +192,11 @@ export function SeriesStudio({
               {header}
               <StudioGuide blueprint={blueprint} scenes={activeScenes} pending={scenePending}
                 preview={seriesId === "demo" && !onDevelopScene} onScene={handleScene} onReview={goToEpisode} />
+              <div className={styles.contextualEmpty}>
+                <strong>Explore the next Creator Studio.</strong>{" "}
+                <a className={styles.compactButton} href={"/series/" + encodeURIComponent(seriesId) + "/creator-preview"}>Open interactive UX preview ↗</a>
+                <p>Story seeds, character rehearsal, chibi direction, crossovers and production budgets. Only saved story plans are connected, when preview DB is configured.</p>
+              </div>
               <ClarificationCard blueprint={blueprint} onAnswer={onClarificationAnswer} />
               <div className={styles.dashboardGrid}>
                 <div className={styles.dashboardPrimary}>
@@ -278,7 +283,7 @@ export function SeriesStudio({
         ))}
       </nav>
 
-      <CastDetailSheet member={selectedCast} onClose={() => setSelectedCast(null)} />
+      <CastDetailSheet seriesId={seriesId} member={selectedCast} onClose={() => setSelectedCast(null)} />
     </div>
   );
 }

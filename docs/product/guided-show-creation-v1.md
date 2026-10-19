@@ -67,10 +67,3 @@ Route saved scenes to their actual workspace and missing scenes through the exis
 Test beat order, active-scene selection, recommendations, routing, request handling, archived behavior, accessible keyboard interactions, and responsive layouts at 320/390/430/1280/1440px. Run required repository CI checks. Verify a real browser if available; distinguish fixtures from authenticated live validation.
 
 Open a bounded PR without merging. Report exact files, capability boundaries, validation, remaining blockers, and a new copy-ready self-prompt for the next dependency.
-
-
-## Browser-first integration
-
-The combined operations branch reconciles PR #23 and PR #24. `/` remains the launch/access page, `/create` hosts this guided flow, `/studio` lists saved shows, and `/system` retains server-verified owner checks. Production/preview database isolation is preserved for all clients and worker routes. Native PR #24 remains unmodified and unmerged.
-
-Cloud smoke uses a labeled browser-intercepted direction fixture, then real cookie-authenticated persistence to a disposable Supabase instance. It tests provider-unavailable UI, draft reload, a save whose committed response is lost, retry using the same UUID, exactly one database row, reload, and mobile layout overflow. It does not claim live model generation, paid media generation, or production hosting readiness.

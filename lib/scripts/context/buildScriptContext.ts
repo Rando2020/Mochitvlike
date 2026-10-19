@@ -1,3 +1,4 @@
+import { compileCharacterDirection } from "@/lib/character-direction/compile";
 import type { SceneBlueprint } from "@/lib/scenes/types";
 import type { SeriesBlueprint } from "@/lib/series/types";
 import type { ScriptContext } from "../types";
@@ -19,7 +20,8 @@ export function buildScriptContext(input: {
       personalityTraits: member.personalityTraits,
       communicationStyle: member.characterSheetSeed.communicationStyle,
       personality: member.characterSheetSeed.personality,
-      relationshipToProtagonist: member.relationshipToProtagonist
+      relationshipToProtagonist: member.relationshipToProtagonist,
+      ...(member.generationDirection ? { creatorDirection: compileCharacterDirection(member.generationDirection) } : {})
     }));
 
   const requiredCanon = new Set(input.scene.continuityChecks.requiredCanonFactIds);
