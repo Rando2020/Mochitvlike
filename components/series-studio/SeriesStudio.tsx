@@ -168,7 +168,7 @@ export function SeriesStudio({
   return (
     <div className={styles.studioRoot} data-series-id={seriesId}>
       <aside className={styles.desktopNav} aria-label="Series Studio navigation">
-        <div className={styles.brandMark} aria-label="Series Studio">M</div>
+        <div className={styles.brandMark} aria-label="Crayvo Series Studio">C</div>
         <nav>
           {NAV_ITEMS.map((item) => (
             <button

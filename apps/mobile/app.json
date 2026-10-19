@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Crayvo",
+    "slug": "crayvo",
+    "scheme": "crayvo",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "ios": { "supportsTablet": true },
+    "android": { "adaptiveIcon": { "backgroundColor": "#11101d" } },
+    "plugins": ["expo-sqlite"],
+    "extra": { "releaseStage": "development" }
+  }
+}

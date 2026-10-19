@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CrayvoBrand } from "@/components/brand/CrayvoBrand";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { SeriesIdeaRequestSchema } from "@/lib/series/generationRequest";
@@ -123,7 +124,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
 
   return (
     <main className={styles.page}>
-      <nav className={styles.topbar} aria-label="Studio access"><a href="/" className={styles.brand}>Series Studio</a><a href="/studio">Your shows</a><a href={creatorId ? "/account" : "/login"}>{creatorId ? "Your account" : "Sign in"}</a></nav>
+      <nav className={styles.topbar} aria-label="Studio access"><CrayvoBrand /><a href="/studio">Your shows</a><a href={creatorId ? "/account" : "/login"}>{creatorId ? "Your account" : "Sign in"}</a></nav>
       <header className={styles.hero}>
         <img src="/design/story-spark-v1.webp" alt="" className={styles.art} width={1200} height={800} />
         <div className={styles.heroCopy}><span className={styles.eyebrow}>Your imagination, a place to begin</span><h1>What would you love to watch?</h1><p>Start with an idea. Shape its direction. Step into your show's Studio.</p></div>

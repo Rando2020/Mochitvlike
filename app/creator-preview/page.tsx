@@ -2,7 +2,7 @@ import { CreatorExperiencePreview } from "@/components/creator-preview/CreatorEx
 import { theWoundsWeKeep } from "@/lib/series/demoBlueprint";
 
 export const metadata = {
-  title: "Creator Experience Preview",
+  title: "Crayvo Creator Experience Preview",
   description: "Preview the next chapter of the creator studio. Concept only."
 };
 
