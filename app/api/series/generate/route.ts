@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const generated = await generateSeriesBlueprint(parsed.data);
     return NextResponse.json(generated, { headers: { "Cache-Control": "private, no-store" } });
   } catch (caught) {
-    if (caught instanceof SeriesGenerationError) return error(caught.code === "SERIES_PROVIDER_UNAVAILABLE" ? 503 : 422, caught.code);
+    if (caught instanceof SeriesGenerationError) return error(caught.code === "SERIES_PROVIDER_UNAVAILABLE" ? 503 : caught.code === "SERIES_GENERATION_FAILED" ? 502 : 422, caught.code);
     return error(500, "SERIES_GENERATION_FAILED");
   }
 }
