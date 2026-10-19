@@ -40,7 +40,7 @@ do $$ declare r record; begin
   execute format('grant execute on function %s to anon',r.routine);
  end loop;
 end $$;
-\ir ../migrations/20261004003600_revoke_anonymous_pipeline_execution.sql
+\ir ../migrations/20261004035341_revoke_anonymous_pipeline_execution.sql
 select plan(5);
 select is((select count(*)::integer from pipeline_rpc_access),33,'all pipeline RPCs covered');
 select is((select count(*)::integer from pipeline_rpc_access where has_function_privilege('anon',routine,'EXECUTE')),0,'anonymous callers cannot execute pipeline RPCs');

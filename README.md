@@ -8,6 +8,8 @@ Your browser-first anime/show production workspace.
 
 Start with the [browser setup guide](docs/BROWSER_FIRST_SETUP.md). It covers account connection, preview isolation, database updates, owner connection checks, and recovery.
 
+See the [operational release gate](docs/operations/OPERATIONAL_STUDIO_RELEASE.md) for the applied security repair, integrated scene-planning workflow, readiness matrix, and remaining live verification.
+
 The hosted launch page provides Create a Show, Open Studio, Sign in, Preview Changes, and Build Status. `/create` guides idea, direction review, and explicit save. `/studio` lists your saved projects. `/system` is restricted to configured owner accounts. Story creation requires configured server-side AI credentials and a model available to your account; media providers remain separate.
 
 ## Developer checks

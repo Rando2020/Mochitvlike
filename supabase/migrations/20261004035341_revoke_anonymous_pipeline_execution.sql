@@ -33,3 +33,10 @@ revoke execute on function public.renew_production_frame_generation_lease(uuid,u
 revoke execute on function public.complete_production_frame_generation(uuid,uuid,text,text,text,integer,integer,text) from anon;
 revoke execute on function public.fail_production_frame_generation(uuid,uuid,text) from anon;
 revoke execute on function public.retry_production_frame_generation(uuid) from anon;
+
+-- Release postconditions: fail the transaction if intended access is not preserved.
+do $$ begin
+if (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.prosecdef) <> 33 then raise exception 'Unexpected pipeline routine set'; end if;
+if exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.prosecdef and (has_function_privilege('anon',p.oid,'EXECUTE') or not has_function_privilege('service_role',p.oid,'EXECUTE'))) then raise exception 'Pipeline grant assertion failed'; end if;
+if (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.prosecdef and has_function_privilege('authenticated',p.oid,'EXECUTE')) <> 5 then raise exception 'Creator retry assertion failed'; end if;
+end $$;

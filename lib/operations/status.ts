@@ -10,6 +10,7 @@ export async function connectionChecks(supabase: SupabaseClient): Promise<Connec
   }
   for (const [label, present, message] of [
     ["Story AI", Boolean(process.env.OPENAI_API_KEY && (process.env.OPENAI_SERIES_MODEL || process.env.OPENAI_SCENE_MODEL)), "Key and show model are configured. Provider access and generation have not been tested."],
+    ["Scene planning", Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_SCENE_MODEL), "Key and scene model are configured. Provider access and scene generation have not been tested."],
     ["Worker access", Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.CRON_SECRET), "Worker credentials are configured. Scheduling and execution have not been tested."],
     ["Visual inference", Boolean(process.env.VISUAL_INFERENCE_URL && process.env.VISUAL_INFERENCE_TOKEN), "Endpoint and token are configured. GPU readiness and generation have not been tested."],
     ["Motion", Boolean(process.env.RUNWAYML_API_SECRET), "Key is configured. Provider access has not been tested."],
