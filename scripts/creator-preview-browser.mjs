@@ -29,6 +29,13 @@ try {
     const manifestBody = await manifest.json();
     assert.equal(manifestBody.name, "Crayvo Studio");
     assert.equal(manifestBody.display, "standalone");
+    assert.ok(manifestBody.icons.some(i => i.sizes === "192x192"), "PWA must offer 192px icon");
+    assert.ok(manifestBody.icons.some(i => i.sizes === "512x512"), "PWA must offer 512px icon");
+    for (const pixels of [192, 512]) {
+      const png = await page.request.get("http://127.0.0.1:3100/pwa-icon?size=" + pixels);
+      assert.equal(png.status(), 200, pixels + " PWA icon");
+      assert.match(png.headers()["content-type"], /image\/png/i);
+    }
     const icon = await page.request.get("http://127.0.0.1:3100/icon.svg");
     assert.equal(icon.status(), 200, "Crayvo vector icon");
     const appleIcon = await page.request.get("http://127.0.0.1:3100/apple-icon");
