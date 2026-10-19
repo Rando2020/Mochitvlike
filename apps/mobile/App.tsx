@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   top: { paddingHorizontal: 22, paddingBottom: 18, borderBottomWidth: 1, borderColor: theme.stroke,
     flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   brandRow: { flexDirection: "row", gap: 12, alignItems: "center" },
-  brandName: { color: theme.text, fontSize: 17, fontWeight: "950", letterSpacing: 2 },
+  brandName: { color: theme.text, fontSize: 17, fontWeight: "900", letterSpacing: 2 },
   signOut: { color: theme.accent, fontSize: 13, fontWeight: "700" },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: 8 },
   heading: { color: theme.text, fontSize: 22, fontWeight: "800", marginTop: 12 },
