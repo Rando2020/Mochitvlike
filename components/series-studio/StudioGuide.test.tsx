@@ -75,7 +75,7 @@ describe("creator guidance from saved state", () => {
     render(<SeriesStudio blueprint={blueprint} seriesId="demo" />);
     fireEvent.click(screen.getByRole("button", { name: "Explore episode" }));
     expect(screen.getByTestId("episode-tab")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Develop Scene" }));
+    expect(screen.queryByRole("button", { name: "Develop Scene" })).not.toBeInTheDocument();
     expect(fetcher).not.toHaveBeenCalled();
     fetcher.mockRestore();
   });
