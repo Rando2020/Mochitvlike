@@ -15,6 +15,18 @@ import { hasCharacterDirection } from "@/lib/character-direction/compile";
 import { CharacterDirectionControls, CharacterDirectionSummary } from "./CharacterDirectionControls";
 import styles from "./GuidedShowCreation.module.css";
 
+const GenerationErrorSchema = z.object({ error: z.object({ code: z.string() }) });
+
+function generationErrorMessage(status: number, code: string): string {
+  if (status === 401 || code === "UNAUTHENTICATED") return "Your session ended. Sign in again; your idea stays in this tab.";
+  if (status === 503 || code === "SERIES_PROVIDER_UNAVAILABLE") return "Show creation is not connected yet. Your idea is still here.";
+  if (code === "SERIES_REPAIR_FAILED") return "The AI returned a story that did not pass the studio's checks, even after one repair. Your idea is safe; try again.";
+  if (code === "SERIES_GENERATION_FAILED") return "The AI could not complete your story direction. Your idea is safe; please try again later.";
+  if (status === 400 || code === "INVALID_SERIES_IDEA") return "The idea or episode settings were not accepted. Review them and try again.";
+  if (status >= 500) return "The story service encountered an error. Your idea is safe; try again later.";
+  return "We could not develop a valid direction. Your idea is still here; try again.";
+}
+
 const GeneratedSchema = z.object({
   seriesBlueprint: SeriesBlueprintSchema,
   metadata: z.object({ source: z.enum(["llm", "repaired"]), schemaVersion: z.literal("1.0") })
@@ -86,7 +98,9 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
     try {
       const response = await fetch("/api/series/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input.data) });
       if (!response.ok) {
-        setMessage(response.status === 401 ? "Your session ended. Sign in again; your idea stays in this tab." : response.status === 503 ? "Show creation is not connected yet. Your idea is still here." : "We could not develop a valid direction. Your idea is still here; try again.");
+        const body = await response.json().catch(() => null);
+        const parsedError = GenerationErrorSchema.safeParse(body);
+        setMessage(generationErrorMessage(response.status, parsedError.success ? parsedError.data.error.code : ""));
         return;
       }
       const result = GeneratedSchema.safeParse(await response.json());
@@ -157,7 +171,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
           <div className={styles.actions}><button type="submit" className={styles.primary} disabled={pending !== null || !loaded || hydratedKey !== key || !creatorId || !providerReady}>{pending === "generate" ? "Developing your direction…" : "Explore this show"}</button></div>
           <p className={styles.hint}>You'll review the direction before saving your show.</p>
         </form>}
-        {message ? <p className={styles.error} role="alert">{message}{creatorId ? <> <a href="/login">Sign-in page</a></> : null}</p> : null}
+        {message ? <p className={styles.error} role="alert">{message}{message.startsWith("Your session ended.") ? <> <a href="/login">Sign-in page</a></> : null}</p> : null}
         <p className={styles.hint} role="status">{pending === "generate" ? "Developing the story foundation. Keep this page open." : pending === "save" ? "Saving the reviewed story foundation." : storageAvailable && creatorId ? "Your draft stays in this browser tab until you close it." : "Draft recovery is unavailable here. Keep this page open to preserve your work."}</p>
       </section>
       {series.length ? <section className={styles.saved} aria-labelledby="saved-shows"><h2 id="saved-shows">Continue your shows</h2><div className={styles.savedGrid}>{series.filter(item => item.status !== "ARCHIVED").map(item => <a key={item.id} href={`/series/${item.id}`}><h3>{item.title}</h3><p>{item.logline}</p><span>Open Studio →</span></a>)}</div></section> : null}
