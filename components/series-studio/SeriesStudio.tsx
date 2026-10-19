@@ -119,7 +119,14 @@ export function SeriesStudio({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ episodeKey: "episodeOne", beatId })
       });
-      if (!response.ok) throw new Error("SCENE_GENERATION_FAILED");
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        if (body?.error?.code === "SCENE_PROVIDER_UNAVAILABLE") {
+          setSceneError("SCENE_PROVIDER_UNAVAILABLE");
+          return;
+        }
+        throw new Error("SCENE_GENERATION_FAILED");
+      }
       const body = await response.json() as { scene?: { id?: unknown } };
       if (typeof body.scene?.id !== "string" || !/^[0-9a-f-]{36}$/i.test(body.scene.id)) {
         throw new Error("INVALID_SCENE_RESPONSE");
@@ -145,7 +152,9 @@ export function SeriesStudio({
     <>
       {sceneError ? (
         <div className={styles.contextualEmpty} role="alert">
-          We could not open or create your scene plan. Check your connection and try again. If a plan was saved, reload the Studio to continue it.
+          {sceneError === "SCENE_PROVIDER_UNAVAILABLE"
+            ? "Scene planning is not connected yet. Your show is saved. Ask the Studio owner to connect story generation, then try again."
+            : "We could not open or create your scene plan. Check your connection and try again. If a plan was saved, reload the Studio to continue it."}
         </div>
       ) : null}
       <EpisodeHero
@@ -162,7 +171,7 @@ export function SeriesStudio({
   return (
     <div className={styles.studioRoot} data-series-id={seriesId}>
       <aside className={styles.desktopNav} aria-label="Series Studio navigation">
-        <div className={styles.brandMark} aria-label="Series Studio">M</div>
+        <div className={styles.brandMark} aria-label="Crayvo Series Studio">C</div>
         <nav>
           {NAV_ITEMS.map((item) => (
             <button
@@ -186,6 +195,11 @@ export function SeriesStudio({
               {header}
               <StudioGuide blueprint={blueprint} scenes={activeScenes} pending={scenePending}
                 preview={seriesId === "demo" && !onDevelopScene} onScene={handleScene} onReview={goToEpisode} />
+              <div className={styles.contextualEmpty}>
+                <strong>Explore the next Creator Studio.</strong>{" "}
+                <a className={styles.compactButton} href={"/series/" + encodeURIComponent(seriesId) + "/creator-preview"}>Open interactive UX preview ↗</a>
+                <p>Story seeds, character rehearsal, chibi direction, crossovers and production budgets. Only saved story plans are connected, when preview DB is configured.</p>
+              </div>
               <ClarificationCard blueprint={blueprint} onAnswer={onClarificationAnswer} />
               <div className={styles.dashboardGrid}>
                 <div className={styles.dashboardPrimary}>
@@ -279,7 +293,7 @@ export function SeriesStudio({
       </nav>
 
       <SeriesDrawer blueprint={blueprint} open={seriesDrawerOpen} onClose={() => setSeriesDrawerOpen(false)} />
-      <CastDetailSheet member={selectedCast} onClose={() => setSelectedCast(null)} />
+      <CastDetailSheet seriesId={seriesId} member={selectedCast} onClose={() => setSelectedCast(null)} />
     </div>
   );
 }
