@@ -11,7 +11,7 @@ export async function getProductionReferences(supabase:SupabaseClient,userId:str
  const records=await listProductionReferenceRecords(supabase,userId,seriesId);
  return records.filter(isApprovedProductionReference).map(r=>({
   id:r.id,type:r.type,assetUrl:r.assetUrl,checksum:r.checksum,source:r.source,approved:r.approved,benchmarkOnly:r.benchmarkOnly,creatorApproved:r.creatorApproved,
-  characterId:r.characterId,abilityId:r.abilityId,modelCompatibility:r.modelCompatibility,status:r.status,storagePath:r.storagePath,referenceRole:r.referenceRole,
+  characterId:r.characterId,abilityId:r.abilityId,modelCompatibility:r.modelCompatibility,status:r.status,storagePath:r.storagePath,referenceRole:r.referenceRole,version:r.version,
   abilitySlot:r.abilitySlot,locationId:r.locationId,propId:r.propId,provenance:r.provenance
  }));
 }

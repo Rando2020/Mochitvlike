@@ -1,0 +1,48 @@
+name: Creator Preview Browser Smoke
+on:
+  push:
+    branches:
+      - "feature/creator-preview-integration-v1"
+  pull_request:
+    paths:
+      - "components/creator-preview/**"
+      - "app/creator-preview/**"
+      - "scripts/creator-preview-browser.mjs"
+      - ".github/workflows/creator-preview-browser.yml"
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install app and pinned browser runner
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Build app for realistic browser smoke
+        run: npm run build
+      - name: Serve creator preview with no secrets or production services
+        run: |
+          npm run start -- -p 3100 > /tmp/creator-preview.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3100/creator-preview >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/creator-preview.log
+          exit 1
+      - name: Verify mobile and desktop guided creator journeys
+        run: node scripts/creator-preview-browser.mjs
+      - name: Upload browser screenshots (public demo content only)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-preview-browser-images
+          path: artifacts/creator-preview/*.png
+          if-no-files-found: warn
+          retention-days: 7

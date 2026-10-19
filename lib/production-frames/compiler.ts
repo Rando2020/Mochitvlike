@@ -1,3 +1,4 @@
+import { compileCharacterDirection } from "@/lib/character-direction/compile";
 import {createHash} from "node:crypto";
 import type {SeriesBlueprint} from "@/lib/series/types";
 import type {SceneBlueprint} from "@/lib/scenes/types";
@@ -8,7 +9,8 @@ import type {VisualFoundationModel} from "@/lib/visual-models/types";
 import type {CanonPerformanceContext,CharacterPerformanceBible} from "@/lib/character-performance/types";
 import {buildProductionFramePerformanceContext} from "@/lib/character-performance/integration";
 import {compileProductionFramePrompt} from "./prompt";
-import {requireAbilityReferences,requireCharacterReferences} from "./references";
+import {requireAbilityReferences} from "./references";
+import {requireRevisionBoundCharacterReferences} from "./direction-references";
 import type {ProductionAbilityConstraint,ProductionFrameGenerationSpec,ProductionReferenceAsset} from "./types";
 
 export type PerformanceBinding={characterId:string;actionPatternId?:string;signatureActionId?:string;abilityId?:string};
@@ -30,7 +32,9 @@ export function buildProductionFrameGenerationSpec(input:{
  if(!storyboard.panels.some(p=>p.id===panel.id))throw new Error("PRODUCTION_FRAME_PANEL_NOT_FOUND");
  const visualBeat=visualPlan.visualBeats.find(b=>b.id===panel.sourceVisualBeatId);if(!visualBeat)throw new Error("PRODUCTION_FRAME_VISUAL_BEAT_NOT_FOUND");
  const allCharacterIds=[...new Set([...visualBeat.focalCharacterIds,...visualBeat.supportingCharacterIds,...panel.characterIds])];
- const characterRefs=requireCharacterReferences(input.references,allCharacterIds,model.id);
+ const boundCharacters=requireRevisionBoundCharacterReferences(series,input.references,allCharacterIds,model.id);
+ const characterRefs=boundCharacters.references;
+ const providerReferences=input.references.map(({version:_version,...reference})=>reference);
  const cast=new Map(series.cast.map(c=>[c.id,c]));
  const continuity=new Map(visualPlan.continuity.characters.map(c=>[c.characterId,c]));
  const bibleByCharacter=new Map(input.performanceBibles.map(b=>[b.characterId,b]));
@@ -43,7 +47,7 @@ export function buildProductionFrameGenerationSpec(input:{
   contexts.push(context);
   if(context.ability){
    const requiredSlots=context.ability.referenceSheet.filter(slot=>slot.required).map(slot=>slot.slot);
-   const refs=requireAbilityReferences(input.references,context.ability.id,model.id,requiredSlots);abilityRefs.push(...refs);
+   const refs=requireAbilityReferences(providerReferences,context.ability.id,model.id,requiredSlots);abilityRefs.push(...refs);
    const effectiveBeats=[...context.ability.choreography.windup,...context.ability.choreography.activation,...context.ability.choreography.release,...context.ability.choreography.impact,...context.ability.choreography.recovery];
    abilities.push({
     characterId,abilityId:context.ability.id,abilityName:context.ability.name,variantId:context.ability.variant.id,
@@ -62,12 +66,14 @@ export function buildProductionFrameGenerationSpec(input:{
   const c=cast.get(characterId);if(!c)throw new Error("PRODUCTION_FRAME_CHARACTER_NOT_FOUND");
   const cont=continuity.get(characterId);
   const bible=bibleByCharacter.get(characterId);
-  return{characterId,name:c.name,visualConcept:c.visualConcept,visualDescription:c.characterSheetSeed.visualDescription,
+  const visualDirection = c.generationDirection ? compileCharacterDirection(c.generationDirection).visual : [];
+  return{characterId,name:c.name,visualConcept:c.visualConcept,visualDescription:c.characterSheetSeed.visualDescription + (visualDirection.length ? "; Creator visual direction: " + visualDirection.join(" ") : ""),
    costumeRequirements:cont?.requiredAppearanceNotes??[],continuityConstraints:cont?.continuityNotes??[],
    performanceBibleVersion:bible?.version??null,referenceAssetIds:characterRefs.filter(r=>r.characterId===characterId).map(r=>r.id)};
  });
  const location=panel.locationId?series.world.locations.find(l=>l.id===panel.locationId)??null:null;
  const canonical=[
+  ...boundCharacters.notes,
   `Series visual identity: ${series.creativeDNA.visualStyle.description}`,
   `Color language: ${series.creativeDNA.visualStyle.colorLanguage}`,
   ...characters.flatMap(c=>[`${c.name} identity: ${c.visualConcept}; ${c.visualDescription}`,...c.costumeRequirements.map(x=>`${c.name} appearance: ${x}`),...c.continuityConstraints.map(x=>`${c.name} continuity: ${x}`)]),

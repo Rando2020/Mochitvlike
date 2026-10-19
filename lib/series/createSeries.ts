@@ -2,6 +2,7 @@ import type { SeriesBlueprint } from "@/lib/series/types";
 import type { SeriesGenerationSource } from "@/lib/series/persistence/types";
 
 export async function persistGeneratedSeries(input: {
+  creationId?: string;
   seriesBlueprint: SeriesBlueprint;
   metadata: {
     source: SeriesGenerationSource;
@@ -35,6 +36,7 @@ export async function persistGeneratedSeries(input: {
 export async function createSeriesAndEnter(
   router: { push(href: string): void },
   input: {
+    creationId?: string;
     seriesBlueprint: SeriesBlueprint;
     metadata: {
       source: SeriesGenerationSource;
