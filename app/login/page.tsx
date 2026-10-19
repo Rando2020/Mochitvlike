@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CrayvoBrand } from "@/components/brand/CrayvoBrand";
 import { signIn } from "./actions";
 
 export default async function LoginPage({ searchParams }: {
@@ -7,7 +8,7 @@ export default async function LoginPage({ searchParams }: {
   const { error } = await searchParams;
   return (
     <main style={{ maxWidth: 440, margin: "64px auto", padding: 24 }}>
-      <h1>Sign in to your studio</h1>
+      <CrayvoBrand /><h1>Sign in to your Crayvo Studio</h1>
       <p>Use your existing creator account.</p>
       {error === "credentials" && <p role="alert">Unable to sign in. Check your email and password and try again.</p>}
       <form action={signIn} style={{ display: "grid", gap: 16 }}>
