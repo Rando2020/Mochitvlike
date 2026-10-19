@@ -1,4 +1,7 @@
 import Link from "next/link";
+
+// Authenticated account content must never be prerendered at build time.
+export const dynamic = "force-dynamic";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
