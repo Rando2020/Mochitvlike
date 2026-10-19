@@ -43,6 +43,14 @@ try {
     const homeDimensions = await page.evaluate(() => ({ width: innerWidth, doc: document.documentElement.scrollWidth }));
     assert.ok(homeDimensions.doc <= homeDimensions.width + 1, mode.name + ": Crayvo home horizontal overflow");
     await page.screenshot({ path: "artifacts/creator-preview/" + mode.name + "-crayvo-home.png", fullPage: true });
+    const startingViewport = page.viewportSize();
+    for (const width of [320, 375, 390, 428, 768, 1440]) {
+      await page.setViewportSize({ width, height: 850 });
+      const measured = await page.evaluate(() => ({ viewport: innerWidth, scroll: document.documentElement.scrollWidth }));
+      assert.ok(measured.scroll <= measured.viewport + 1, "Crayvo home overflow at " + width + "px: " + JSON.stringify(measured));
+    }
+    if (startingViewport) await page.setViewportSize(startingViewport);
+
 
     const response = await page.goto("http://127.0.0.1:3100/creator-preview", { waitUntil: "networkidle" });
     assert.equal(response?.status(), 200, mode.name + ": app should load");
