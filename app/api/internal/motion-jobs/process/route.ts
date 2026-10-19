@@ -4,7 +4,7 @@ import {createAdminSupabaseClient} from "@/lib/supabase/admin";
 import {processMotionClipJob} from "@/lib/motion/jobs/processMotionClipJob";
 
 export const runtime="nodejs";
-export const maxDuration=780;
+export const maxDuration=300;
 
 function authorized(request:NextRequest){
   const expected=process.env.CRON_SECRET;
