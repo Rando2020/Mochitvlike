@@ -18,6 +18,40 @@ try {
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (msg) => { if (msg.type() === "error") consoleErrors.push(msg.text()); });
     page.on("response", (response) => { if (response.status() >= 400) failedNetwork.push(response.status() + " " + response.url().slice(0,140)); });
+    // Verify the public Crayvo entry and install metadata without user credentials.
+    const home = await page.goto("http://127.0.0.1:3100/", { waitUntil: "networkidle" });
+    assert.equal(home?.status(), 200, mode.name + ": Crayvo home should load");
+    await page.getByRole("heading", { name: /stories become worlds/i }).waitFor();
+    await page.getByRole("link", { name: /Create a Show/i }).waitFor();
+    assert.match(await page.title(), /Crayvo/i);
+    const manifest = await page.request.get("http://127.0.0.1:3100/manifest.webmanifest");
+    assert.equal(manifest.status(), 200, "Install manifest route");
+    const manifestBody = await manifest.json();
+    assert.equal(manifestBody.name, "Crayvo Studio");
+    assert.equal(manifestBody.display, "standalone");
+    assert.ok(manifestBody.icons.some(i => i.sizes === "192x192"), "PWA must offer 192px icon");
+    assert.ok(manifestBody.icons.some(i => i.sizes === "512x512"), "PWA must offer 512px icon");
+    for (const pixels of [192, 512]) {
+      const png = await page.request.get("http://127.0.0.1:3100/pwa-icon?size=" + pixels);
+      assert.equal(png.status(), 200, pixels + " PWA icon");
+      assert.match(png.headers()["content-type"], /image\/png/i);
+    }
+    const icon = await page.request.get("http://127.0.0.1:3100/icon.svg");
+    assert.equal(icon.status(), 200, "Crayvo vector icon");
+    const appleIcon = await page.request.get("http://127.0.0.1:3100/apple-icon");
+    assert.equal(appleIcon.status(), 200, "iPhone Home Screen icon");
+    const homeDimensions = await page.evaluate(() => ({ width: innerWidth, doc: document.documentElement.scrollWidth }));
+    assert.ok(homeDimensions.doc <= homeDimensions.width + 1, mode.name + ": Crayvo home horizontal overflow");
+    await page.screenshot({ path: "artifacts/creator-preview/" + mode.name + "-crayvo-home.png", fullPage: true });
+    const startingViewport = page.viewportSize();
+    for (const width of [320, 375, 390, 428, 768, 1440]) {
+      await page.setViewportSize({ width, height: 850 });
+      const measured = await page.evaluate(() => ({ viewport: innerWidth, scroll: document.documentElement.scrollWidth }));
+      assert.ok(measured.scroll <= measured.viewport + 1, "Crayvo home overflow at " + width + "px: " + JSON.stringify(measured));
+    }
+    if (startingViewport) await page.setViewportSize(startingViewport);
+
+
     const response = await page.goto("http://127.0.0.1:3100/creator-preview", { waitUntil: "networkidle" });
     assert.equal(response?.status(), 200, mode.name + ": app should load");
     await page.getByRole("heading", { name: /every story starts/i }).waitFor();

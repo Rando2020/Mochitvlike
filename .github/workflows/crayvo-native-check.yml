@@ -1,0 +1,27 @@
+name: Crayvo native MVP check
+on:
+  pull_request:
+    paths:
+      - "apps/mobile/**"
+      - ".github/workflows/crayvo-native-check.yml"
+  push:
+    branches:
+      - "feature/crayvo-mobile-web-app"
+    paths:
+      - "apps/mobile/**"
+      - ".github/workflows/crayvo-native-check.yml"
+jobs:
+  native-types:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install native dependencies
+        working-directory: apps/mobile
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Typecheck native project
+        working-directory: apps/mobile
+        run: npm run check

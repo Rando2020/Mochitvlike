@@ -100,7 +100,7 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
   return (
     <div className={styles.shell}>
       <aside className={styles.rail}>
-        <a className={styles.logo} href="#preview-top" aria-label="Creator preview home">✳</a>
+        <a className={styles.logo} href="#preview-top" aria-label="Crayvo creator preview home">C</a>
         <span className={styles.railCaption}>CREATOR PREVIEW</span>
         <nav aria-label="Creator preview sections">
           {NAV.map((item) => (
@@ -112,7 +112,7 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
       </aside>
       <div className={styles.main} id="preview-top">
         <header className={styles.topbar}>
-          <div className={styles.brand}><span className={styles.brandIcon}>✳</span><span>Creator Studio <small>EXPERIENCE CONCEPT</small></span></div>
+          <div className={styles.brand}><span className={styles.brandIcon}>✳</span><span>Crayvo Studio <small>EXPERIENCE CONCEPT</small></span></div>
           <div className={styles.headerRight}><span className={styles.previewPill}>● Interactive prototype</span>{seriesId ? <a className={styles.backLink} href={"/series/" + encodeURIComponent(seriesId)}>Existing studio ↗</a> : null}</div>
         </header>
         <div className={styles.notice} role="status"><strong>{seriesId ? "Creator Studio preview." : "UX preview only."}</strong> {seriesId ? "The Story tab can save your own story seeds when its database migration is installed. Watch, Create, Cast and Coins are still concepts. No media jobs or paid inference occur." : "Controls change this session's sample state. No saving, real character chat, sharing, coins, publishing, or AI/GPU generation occurs."}</div>

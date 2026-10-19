@@ -1,6 +1,8 @@
-# Mochitvlike
+# Crayvo (formerly Mochitvlike)
 
-Your browser-first anime/show production workspace.
+**Stories become worlds.** Crayvo is a browser-first original anime/show production studio with an installable web experience and a native Expo mobile foundation under `apps/mobile/`.
+
+**Current status:** These changes are proposed on a development branch. Hosted preview, real iPhone execution, and TestFlight distribution have not yet been verified. See [Crayvo Web + iOS MVP](docs/product/CRAYVO_WEB_IOS_MVP.md).
 
 [Open Studio](https://vercel.com/dashboard) · [Preview Changes](https://github.com/Rando2020/Mochitvlike/pulls) · [Build Status](https://github.com/Rando2020/Mochitvlike/actions) · [Database Settings](https://supabase.com/dashboard)
 
