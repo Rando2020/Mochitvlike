@@ -1,4 +1,4 @@
-import {render,screen,fireEvent} from "@testing-library/react";
+import {render,screen,fireEvent,within} from "@testing-library/react";
 import {describe,expect,it} from "vitest";
 import {theWoundsWeKeep} from "@/lib/series/demoBlueprint";
 import {buildOrinPerformanceBible} from "@/lib/character-performance/__tests__/fixtures";
@@ -22,3 +22,5 @@ describe("ProductionReferenceStudio",()=>{
  it("switches characters",()=>{render(<ProductionReferenceStudio seriesId="s" blueprint={theWoundsWeKeep} bibles={[bible]} initialReferences={[]}/>);fireEvent.click(screen.getByRole("button",{name:/Mara/}));expect(screen.getByRole("heading",{name:"Mara"})).toBeInTheDocument();});
  it("does not render database internals",()=>{const {container}=render(<ProductionReferenceStudio seriesId="s" blueprint={theWoundsWeKeep} bibles={[bible]} initialReferences={[]}/>);expect(container.textContent).not.toContain("storage_path");expect(container.textContent).not.toContain("creator_approved");});
 });
+
+ it("offers required rights declarations on character uploads",()=>{render(<ProductionReferenceStudio seriesId="s" blueprint={theWoundsWeKeep} bibles={[]} initialReferences={[]}/>);const rights=screen.getByRole("group",{name:"Character reference rights"});for(const label of ["Production use","Commercial use","Model conditioning"])expect(within(rights).getByRole("checkbox",{name:label})).toBeRequired();});
