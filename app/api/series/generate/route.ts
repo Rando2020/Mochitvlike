@@ -1,3 +1,4 @@
+import { admitGeneration, GenerationAdmissionError } from "@/lib/operations/generationAdmission";
 import { NextRequest, NextResponse } from "next/server";
 import { SeriesIdeaRequestSchema } from "@/lib/series/generationRequest";
 import { generateSeriesBlueprint, SeriesGenerationError } from "@/lib/series/generateSeriesBlueprint";
@@ -14,9 +15,12 @@ export async function POST(request: NextRequest) {
     const supabase = await createServerSupabaseClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return error(401, "UNAUTHENTICATED");
-    const generated = await generateSeriesBlueprint(parsed.data);
+    const release = await admitGeneration(user.id);
+    let generated;
+    try { generated = await generateSeriesBlueprint(parsed.data); } finally { await release(); }
     return NextResponse.json(generated, { headers: { "Cache-Control": "private, no-store" } });
   } catch (caught) {
+    if (caught instanceof GenerationAdmissionError) return error(caught.status, caught.code);
     if (caught instanceof SeriesGenerationError) return error(caught.code === "SERIES_PROVIDER_UNAVAILABLE" ? 503 : caught.code === "SERIES_GENERATION_FAILED" ? 502 : 422, caught.code);
     return error(500, "SERIES_GENERATION_FAILED");
   }

@@ -4,7 +4,7 @@ export interface StoryboardImageProvider{readonly name:string;readonly model:str
 export class OpenAIStoryboardImageProvider implements StoryboardImageProvider{
   readonly name="openai";
   readonly model=process.env.OPENAI_STORYBOARD_IMAGE_MODEL??"gpt-image-2";
-  private client=new OpenAI({apiKey:process.env.OPENAI_API_KEY});
+  private client=new OpenAI({apiKey:process.env.OPENAI_API_KEY,timeout:150000,maxRetries:0});
   async generate(input:{prompt:string;negativeConstraints:string[];width:number;height:number;signal?:AbortSignal}){
     const response=await this.client.images.generate({
       model:this.model,prompt:input.prompt,n:1,size:"1536x1024",quality:"medium",output_format:"png"
