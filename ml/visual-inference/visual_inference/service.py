@@ -68,6 +68,10 @@ class VisualInferenceService:
     async def generate(self,request:GenerateRequest)->GenerateResponse:
         request_id=str(uuid.uuid4());start=time.monotonic()
         spec=request.spec
+        # A development-marked candidate must never be executed in production,
+        # even when its id/revision are otherwise valid in the pinned registry.
+        if self.settings.environment == "production" and spec.model.developmentOverride:
+            raise bounded_error("MODEL_NOT_SUPPORTED")
         safe_event("visual_inference_request_started",requestId=request_id,modelId=spec.model.modelId,revision=spec.model.revision,architecture=spec.model.architecture,width=spec.output.width,height=spec.output.height,referenceCount=len(spec.references),developmentVisual=spec.model.developmentOverride)
         if spec.references and not self.settings.allowed_reference_hosts:
             raise bounded_error("REFERENCE_DOWNLOAD_FAILED")

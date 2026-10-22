@@ -13,6 +13,22 @@ describe("Hosted database isolation", () => {
     for (const url of [`http://${preview}.supabase.co`, `https://${preview}.supabase.co.attacker.invalid`]) expect(() => assertDatabaseIsolation({ ...env, NEXT_PUBLIC_SUPABASE_URL: url })).toThrow();
   });
   it("permits disposable local CI without Vercel scopes", () => expect(() => assertDatabaseIsolation({ NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321" })).not.toThrow());
+  it("fails closed when a hosted environment has an unknown scope", () => {
+    for (const scope of ["staging", "qa", ""]) {
+      expect(() => assertDatabaseIsolation({ ...env, VERCEL: "1", VERCEL_ENV: scope, NEXT_PUBLIC_SUPABASE_URL: `https://${production}.supabase.co` })).toThrow("DATABASE_ENVIRONMENT_UNSAFE");
+    }
+    expect(() => assertDatabaseIsolation({ ...env, VERCEL: "1", VERCEL_ENV: undefined })).toThrow("DATABASE_ENVIRONMENT_UNSAFE");
+  });
+  it("rejects database URLs with credentials, paths, ports, query or fragment", () => {
+    for (const url of [
+      `https://name:password@${preview}.supabase.co`,
+      `https://${preview}.supabase.co/rest/v1`,
+      `https://${preview}.supabase.co:5432`,
+      `https://${preview}.supabase.co/?unexpected=1`,
+      `https://${preview}.supabase.co/#fragment`
+    ]) expect(() => assertDatabaseIsolation({ ...env, NEXT_PUBLIC_SUPABASE_URL: url })).toThrow("DATABASE_ENVIRONMENT_UNSAFE");
+  });
+
   it("owner access is an exact, fail-closed user ID allowlist", () => {
     expect(isOperationsOwner("owner", {})).toBe(false);
     expect(isOperationsOwner("owner", { OPERATIONS_OWNER_IDS: "other, owner " })).toBe(true);
