@@ -1,3 +1,5 @@
+import { admitGeneration, GenerationAdmissionError } from "@/lib/operations/generationAdmission";
+vi.mock("@/lib/operations/generationAdmission", async original => ({ ...await original<object>(), admitGeneration: vi.fn(async () => async () => {}) }));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -9,6 +11,13 @@ vi.mock("@/lib/series/generateSeriesBlueprint",async original=>({...await origin
 const request=(body:unknown)=>new NextRequest("http://localhost/api/series/generate",{method:"POST",body:JSON.stringify(body)});
 beforeEach(()=>{vi.resetAllMocks();vi.mocked(createServerSupabaseClient).mockResolvedValue({auth:{getUser:async()=>({data:{user:{id:"owner"}},error:null})}} as never);});
 describe("authenticated show generation route",()=>{
+  it.each([[503, "GENERATION_DISABLED"], [429, "GENERATION_LIMIT_REACHED"]] as const)("blocks provider execution on admission rejection %s", async (status, code) => {
+    vi.mocked(admitGeneration).mockRejectedValue(new GenerationAdmissionError(code, status));
+    const res = await POST(request({ idea: "A quiet mystery" }));
+    expect(res.status).toBe(status);
+    expect(await res.json()).toEqual({ error: { code } });
+    expect(generateSeriesBlueprint).not.toHaveBeenCalled();
+  });
   it("requires an authenticated creator before provider execution",async()=>{
     vi.mocked(createServerSupabaseClient).mockResolvedValue({auth:{getUser:async()=>({data:{user:null},error:null})}} as never);
     expect((await POST(request({idea:"A quiet mystery"}))).status).toBe(401);

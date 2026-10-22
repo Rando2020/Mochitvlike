@@ -1,0 +1,27 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(10);
+select ok(not has_function_privilege('anon', 'public.reserve_generation(uuid,uuid)', 'EXECUTE'), 'Anonymous cannot reserve');
+select ok(not has_function_privilege('authenticated', 'public.reserve_generation(uuid,uuid)', 'EXECUTE'), 'Creators cannot bypass server admission');
+select ok(not has_table_privilege('authenticated', 'public.generation_admissions', 'UPDATE'), 'Creators cannot reset quotas');
+insert into auth.users(id,email) values ('44444444-4444-4444-8444-444444444444','admission@example.invalid');
+set local role service_role;
+select is(public.reserve_generation('44444444-4444-4444-8444-444444444444',gen_random_uuid()), 'ACCEPTED', 'First attempt accepted');
+select is(public.reserve_generation('44444444-4444-4444-8444-444444444444',gen_random_uuid()), 'CONCURRENT', 'Concurrent attempt denied');
+update public.generation_admissions set finished_at=now();
+select is(public.reserve_generation('44444444-4444-4444-8444-444444444444',gen_random_uuid()), 'ACCEPTED', 'Second attempt accepted');
+update public.generation_admissions set expires_at=now()-interval '1 second';
+select is(public.reserve_generation('44444444-4444-4444-8444-444444444444',gen_random_uuid()), 'ACCEPTED', 'Abandoned lease expires');
+update public.generation_admissions set finished_at=now();
+select is(public.reserve_generation('44444444-4444-4444-8444-444444444444',gen_random_uuid()), 'USER_LIMIT', 'Finished and abandoned attempts still count');
+reset role;
+delete from public.generation_admissions;
+insert into public.generation_admissions(id,creator_id,started_at,finished_at)
+select gen_random_uuid(),'44444444-4444-4444-8444-444444444444',date_trunc('day',now() at time zone 'UTC') at time zone 'UTC',now() from generate_series(1,20);
+insert into auth.users(id,email) values ('55555555-5555-4555-8555-555555555555','admission-other@example.invalid');
+set local role service_role;
+select is(public.reserve_generation('55555555-5555-4555-8555-555555555555',gen_random_uuid()), 'GLOBAL_LIMIT', 'App daily limit applies across creators');
+select is((select count(*) from public.generation_admissions),20::bigint,'Denied attempts do not create reservations');
+reset role;
+select * from finish();
+rollback;

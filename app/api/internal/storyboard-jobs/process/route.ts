@@ -4,7 +4,7 @@ import {createAdminSupabaseClient} from "@/lib/supabase/admin";
 import {processStoryboardPanelJob} from "@/lib/storyboards/jobs/processStoryboardPanelJob";
 
 export const runtime="nodejs";
-export const maxDuration=180;
+export const maxDuration=300;
 
 function authorized(request:NextRequest){
  const expected=process.env.CRON_SECRET;

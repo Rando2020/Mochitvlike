@@ -1,3 +1,4 @@
+import { admitGeneration, GenerationAdmissionError } from "@/lib/operations/generationAdmission";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { buildSceneContext, SceneContextError } from "@/lib/scenes/context/buildSceneContext";
@@ -85,12 +86,14 @@ export async function POST(
       parsed.data.beatId
     );
 
-    const generated = await generateSceneBlueprint({
+    const release = await admitGeneration(user.id);
+    let generated;
+    try { generated = await generateSceneBlueprint({
       seriesId: series.id,
       beatId: parsed.data.beatId,
       seriesBlueprint: series.blueprint,
       context
-    });
+    }); } finally { await release(); }
 
     const persisted = await saveScene(supabase, {
       creatorId: user.id,
@@ -137,6 +140,7 @@ export async function POST(
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof GenerationAdmissionError) return errorResponse(error.status, error.code, "Generation is paused or its limit has been reached. Try again later.");
     if (error instanceof SeriesPersistenceError && error.code === "SERIES_NOT_FOUND") {
       return errorResponse(404, "SERIES_NOT_FOUND", "Series was not found.");
     }

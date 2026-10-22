@@ -13,6 +13,8 @@ const output = {
   SUPABASE_SERVICE_ROLE_KEY: values.SERVICE_ROLE_KEY,
   CRON_SECRET: randomBytes(32).toString("hex"),
   CLOUD_SMOKE: "true",
+  // Enable admission only against the loopback DB and local HTTP provider fixture.
+  TEXT_GENERATION_ENABLED: "true",
   OPERATIONS_OWNER_IDS: "33333333-3333-4333-8333-333333333333",
   // Browser tests intercept generation; these never authorize a paid call.
   OPENAI_API_KEY: "ci-fixture-no-provider-access",
