@@ -91,3 +91,5 @@ Node 24.19.0. The first complete run exposed a stale pre-existing demo selector;
 its test now asserts the newer read-only preview board without altering behavior.
 Final build and Node 22 CI results are recorded in the draft PR. Fixture source
 and four crop checksums were verified locally. No hosted acceptance is claimed.
+
+Preview response safety: PNG crops above 3 MiB return SHEET_PREVIEW_TOO_LARGE before base64 serialization; the UI asks for a smaller rectangle. Saving still preserves the existing reference-file size bounds.

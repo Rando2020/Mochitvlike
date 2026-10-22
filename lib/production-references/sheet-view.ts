@@ -46,6 +46,8 @@ export async function prepareSheetView(input: {
   const inspection = inspectProductionReferenceImage(bytes, source.visualMetadata.mimeType);
   if (inspection.width !== source.visualMetadata.width || inspection.height !== source.visualMetadata.height) throw new SheetViewError(409, "SHEET_SOURCE_CHANGED");
   const cropped = await extractSheetView(bytes, inspection.mimeType, request.crop);
+  // Base64 expands bytes by 4/3. Leave room under the platform response limit.
+  if (request.action === "preview" && cropped.byteLength > 3 * 1024 * 1024) throw new SheetViewError(413, "SHEET_PREVIEW_TOO_LARGE");
   if (request.action === "preview") return {
     previewUrl: `data:image/png;base64,${cropped.toString("base64")}`, visualRevision: revision,
     width: request.crop.width, height: request.crop.height

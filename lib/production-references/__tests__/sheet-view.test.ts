@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import sharp from "sharp";
 import { Blob } from "node:buffer";
@@ -100,4 +101,14 @@ describe("owned source lineage and separate review", () => {
   it("old assets without lineage remain readable", () => {
     for (const notes of [null, "Original drawing", "{}", '{"kind":"sheet-view-v1"}']) expect(readSheetViewLineage(notes)).toBeNull();
   });
+});
+
+it("rejects a large real PNG preview before returning base64 or saving a reference", async () => {
+  bytes = await sharp(randomBytes(1024 * 1024 * 4), { raw: { width: 1024, height: 1024, channels: 4 } }).png().toBuffer();
+  source.checksum = referenceChecksum(bytes);
+  source.visualMetadata = { width: 1024, height: 1024, mimeType: "image/png" };
+  input.request.sourceChecksum = source.checksum;
+  input.request.crop = { left: 0, top: 0, width: 1024, height: 1024 };
+  await expect(prepareSheetView(input)).rejects.toMatchObject({ status: 413, message: "SHEET_PREVIEW_TOO_LARGE" });
+  expect(create).not.toHaveBeenCalled();
 });

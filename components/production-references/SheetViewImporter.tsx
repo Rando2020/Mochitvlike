@@ -35,7 +35,7 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
         // A server error can occur after insertion. Never retry a save automatically.
         if (action === "save" && response.status >= 500) throw new Error("Save uncertain.");
         saveMayHaveSucceeded = false; invalidate();
-        setMessage(result.error?.code ?? "View could not be prepared. Preview again."); return;
+        setMessage(result.error?.code === "SHEET_PREVIEW_TOO_LARGE" ? "This crop is too large to preview. Choose a smaller rectangle." : result.error?.code ?? "View could not be prepared. Preview again."); return;
       }
       if (action === "preview") {
         if (!result.previewUrl || !result.visualRevision) throw new Error("Preview unavailable.");
