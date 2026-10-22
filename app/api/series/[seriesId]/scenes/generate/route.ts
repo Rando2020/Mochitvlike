@@ -150,7 +150,10 @@ export async function POST(
     }
 
     if (error instanceof SceneGenerationError) {
-      const status = error.code === "SCENE_PROVIDER_UNAVAILABLE" ? 503 : 422;
+      // Provider/runtime failures are upstream errors, not invalid creator input.
+      // Reserve 422 for a plan that remained invalid after the single repair.
+      const status = error.code === "SCENE_PROVIDER_UNAVAILABLE" ? 503 :
+        error.code === "SCENE_GENERATION_FAILED" ? 502 : 422;
       return errorResponse(status, error.code, "Scene could not be safely developed.");
     }
 

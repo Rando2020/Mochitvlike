@@ -80,6 +80,16 @@ describe("creator guidance from saved state", () => {
     expect(fetcher).not.toHaveBeenCalled();
     fetcher.mockRestore();
   });
+  it("uses the same saved-show recovery guidance from the Episode tab", async () => {
+    const fetcher = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ error: { code: "SCENE_PROVIDER_UNAVAILABLE", message: "private model configuration" } }), { status: 503 }));
+    render(<SeriesStudio blueprint={blueprint} seriesId={seriesId} />);
+    fireEvent.click(screen.getAllByRole("button", { name: "Episode" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Create scene 1 plan" }));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Your show is saved"));
+    expect(screen.getByRole("alert")).not.toHaveTextContent("private");
+    expect(screen.getByRole("button", { name: "Create scene 1 plan" })).toBeEnabled();
+    fetcher.mockRestore();
+  });
   it("explains missing scene configuration without exposing provider details", async () => {
     const fetcher = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ error: { code: "SCENE_PROVIDER_UNAVAILABLE", message: "private model configuration" } }), { status: 503 }));
     render(<SeriesStudio blueprint={blueprint} seriesId={seriesId} />);
