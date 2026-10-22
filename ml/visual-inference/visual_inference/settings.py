@@ -51,6 +51,9 @@ class Settings:
             raise RuntimeError("VISUAL_INFERENCE_TOKEN_REQUIRED")
         if self.backend=="test" and self.environment=="production":
             raise RuntimeError("TEST_BACKEND_FORBIDDEN_IN_PRODUCTION")
+        # Prevent eager preloading of a candidate into production.
+        if self.environment=="production" and self.dev_model_id:
+            raise RuntimeError("DEVELOPMENT_MODEL_FORBIDDEN_IN_PRODUCTION")
         if self.max_reference_bytes<=0 or self.max_output_bytes<=0:
             raise RuntimeError("INVALID_BYTE_LIMIT")
         for scale in (self.identity_conditioning_scale,self.vfx_conditioning_scale,self.color_conditioning_scale):

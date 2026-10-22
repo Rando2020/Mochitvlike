@@ -91,6 +91,19 @@ def test_no_reference_hosts_fails_closed(auth_headers):
 def test_test_backend_forbidden_in_production():
     with pytest.raises(RuntimeError,match="TEST_BACKEND_FORBIDDEN_IN_PRODUCTION"):VisualInferenceService(settings(environment="production",backend="test"))
 
+def test_production_rejects_candidate_model_configuration():
+    # No GPU, no model load, and no network calls should be needed at startup.
+    with pytest.raises(RuntimeError,match="DEVELOPMENT_MODEL_FORBIDDEN_IN_PRODUCTION"):
+        VisualInferenceService(settings(environment="production",backend="diffusers"))
+
+def test_production_rejects_development_override_before_gpu_or_download(auth_headers):
+    c,_=client(environment="production",backend="diffusers",dev_model_id=None)
+    r=c.post("/v1/production-frame",headers=auth_headers,json=payload())
+    assert r.status_code==400
+    assert r.json()["error"]["code"]=="MODEL_NOT_SUPPORTED"
+    assert c.get("/readyz").status_code==503
+
+
 def test_missing_token_fails_startup():
     with pytest.raises(RuntimeError,match="VISUAL_INFERENCE_TOKEN_REQUIRED"):VisualInferenceService(settings(auth_token=""))
 

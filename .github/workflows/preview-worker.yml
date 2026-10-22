@@ -1,0 +1,44 @@
+name: Preview Worker
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: Exact protected preview URL for this project
+        required: true
+        type: string
+      queue:
+        description: Process at most one already-queued job (may incur provider cost)
+        type: choice
+        options: [storyboard, motion, dialogue, sound, frame]
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: preview-worker
+  cancel-in-progress: false
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    environment: preview-workers
+    steps:
+      # No repository checkout or execution of PR code with credentials.
+      - name: Process one explicitly requested preview job
+        env:
+          DEPLOYMENT_URL: ${{ inputs.deployment_url }}
+          QUEUE: ${{ inputs.queue }}
+          WORKER_SECRET: ${{ secrets.PREVIEW_WORKER_SECRET }}
+          BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          set -euo pipefail
+          [[ "$DEPLOYMENT_URL" =~ ^https://mochitvlike-[a-z0-9]+-jojo31790-9839\.vercel\.app$ ]]
+          [[ "$QUEUE" =~ ^(storyboard|motion|dialogue|sound|frame)$ ]]
+          test -n "$WORKER_SECRET" && test -n "$BYPASS_SECRET"
+          # No redirects or automatic retries. Response content is not logged.
+          status=$(curl --silent --show-error --fail --max-time 810 --output /dev/null --write-out '%{http_code}' \
+            -X POST "$DEPLOYMENT_URL/api/internal/preview-worker" \
+            -H "Authorization: Bearer $WORKER_SECRET" \
+            -H "x-vercel-protection-bypass: $BYPASS_SECRET" \
+            -H 'Content-Type: application/json' \
+            --data "{\"queue\":\"$QUEUE\"}")
+          test "$status" = 200 || { echo "Worker request did not complete (HTTP $status)."; exit 1; }

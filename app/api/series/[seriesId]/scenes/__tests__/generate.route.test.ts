@@ -1,3 +1,4 @@
+vi.mock("@/lib/operations/generationAdmission", () => ({ admitGeneration: vi.fn(async () => async () => {}), GenerationAdmissionError: class extends Error {} }));
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { theWoundsWeKeep } from "@/lib/series/demoBlueprint";

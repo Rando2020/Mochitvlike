@@ -5,6 +5,9 @@ import {HttpProductionFrameProvider,type ProductionFrameProvider} from "../provi
 import {validateProductionFrameOutput} from "../quality";
 import {removeProductionFrame,uploadProductionFrame} from "../storage";
 import {VisualModelRegistry} from "@/lib/visual-models/registry";
+import {productionFrameModelBlocker} from "./modelGuard";
+import {productionFrameReferencesCurrent} from "./referenceGuard";
+import {getProductionReferences} from "../persistence";
 import {assertProductionReference} from "../references";
 import {materializeRuntimeReferenceUrls} from "@/lib/production-references/runtime";
 
@@ -40,9 +43,18 @@ export async function processProductionFrameJob(input:{supabase:SupabaseClient;j
  if(productionFrameSpecChecksum(spec)!==job.spec_checksum){await input.supabase.rpc("fail_production_frame_generation",{p_job_id:input.jobId,p_claim_token:input.claimToken,p_error_code:"SPEC_CHECKSUM_MISMATCH"});return "FAILED";}
  const prompt=compileProductionFramePrompt(spec);if(prompt.promptChecksum!==job.prompt_checksum||prompt.promptChecksum!==spec.promptChecksum){await input.supabase.rpc("fail_production_frame_generation",{p_job_id:input.jobId,p_claim_token:input.claimToken,p_error_code:"PROMPT_CHECKSUM_MISMATCH"});return "FAILED";}
  const model=new VisualModelRegistry().get(spec.model.modelId);
- if(!model||model.source.revision!==spec.model.revision||model.source.revision!==job.model_revision){await input.supabase.rpc("fail_production_frame_generation",{p_job_id:input.jobId,p_claim_token:input.claimToken,p_error_code:"MODEL_REVISION_MISMATCH"});return "FAILED";}
- if(!spec.model.developmentOverride&&model.productionStatus!=="APPROVED"){await input.supabase.rpc("fail_production_frame_generation",{p_job_id:input.jobId,p_claim_token:input.claimToken,p_error_code:"MODEL_NOT_APPROVED"});return "FAILED";}
- try{for(const reference of spec.references)assertProductionReference(reference,model.id);}catch{await input.supabase.rpc("fail_production_frame_generation",{p_job_id:input.jobId,p_claim_token:input.claimToken,p_error_code:"REFERENCE_PROVENANCE_INVALID"});return "FAILED";}
+ const modelBlocker=productionFrameModelBlocker({spec,frame,job,model,nodeEnv:process.env.NODE_ENV});
+ if(modelBlocker){await input.supabase.rpc("fail_production_frame_generation",{p_job_id:input.jobId,p_claim_token:input.claimToken,p_error_code:modelBlocker});return "FAILED";}
+ try{for(const reference of spec.references)assertProductionReference(reference,model!.id);}catch{await input.supabase.rpc("fail_production_frame_generation",{p_job_id:input.jobId,p_claim_token:input.claimToken,p_error_code:"REFERENCE_PROVENANCE_INVALID"});return "FAILED";}
+ // An approval snapshot is not a permanent grant. Check the current,
+ // owner-scoped records immediately before any provider or storage work.
+ try{
+  const approved=await getProductionReferences(input.supabase,job.creator_id,spec.seriesId);
+  if(!productionFrameReferencesCurrent(spec,approved))throw new Error("REFERENCE_APPROVAL_CHANGED");
+ }catch{
+  await input.supabase.rpc("fail_production_frame_generation",{p_job_id:input.jobId,p_claim_token:input.claimToken,p_error_code:"REFERENCE_APPROVAL_CHANGED"});
+  return "FAILED";
+ }
 
  let stale=false;let storagePath:string|null=null;
  const heartbeat=setInterval(async()=>{const {data}=await input.supabase.rpc("renew_production_frame_generation_lease",{p_job_id:input.jobId,p_claim_token:input.claimToken,p_lease_seconds:180});if(data!==true)stale=true;},60000);

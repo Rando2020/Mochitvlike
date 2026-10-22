@@ -18,6 +18,9 @@ import styles from "./GuidedShowCreation.module.css";
 const GenerationErrorSchema = z.object({ error: z.object({ code: z.string() }) });
 
 function generationErrorMessage(status: number, code: string): string {
+  if (code === "GENERATION_DISABLED") return "Show creation is paused. Your idea is still here.";
+  if (code === "GENERATION_LIMIT_UNAVAILABLE") return "Show creation is temporarily unavailable. Your idea is safe; try again later.";
+  if (status === 429) return "The generation limit has been reached or another request is running. Your idea is safe; try again later.";
   if (status === 401 || code === "UNAUTHENTICATED") return "Your session ended. Sign in again; your idea stays in this tab.";
   if (status === 503 || code === "SERIES_PROVIDER_UNAVAILABLE") return "Show creation is not connected yet. Your idea is still here.";
   if (code === "SERIES_REPAIR_FAILED") return "The AI returned a story that did not pass the studio's checks, even after one repair. Your idea is safe; try again.";

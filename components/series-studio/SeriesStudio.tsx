@@ -73,6 +73,9 @@ export function SeriesStudio({
   const [scenePending, setScenePending] = useState(false);
   const activeScenes = useMemo(() => selectActiveScenes(blueprint, sceneSummaries), [blueprint, sceneSummaries]);
   const [sceneError, setSceneError] = useState<string | null>(null);
+  const sceneErrorMessage = !sceneError ? null : sceneError === "SCENE_PROVIDER_UNAVAILABLE"
+    ? "Scene planning is not connected yet. Your show is saved. Ask the Studio owner to connect story generation, then try again."
+    : "We could not open or create your scene plan. Check your connection and try again. If a plan was saved, reload the Studio to continue it.";
 
   const primaryFeatures = useMemo(() => selectPrimaryFeatures(blueprint), [blueprint]);
   const secondaryFeatures = useMemo(() => selectSecondaryFeatures(blueprint), [blueprint]);
@@ -150,12 +153,8 @@ export function SeriesStudio({
 
   const episodeHero = (
     <>
-      {sceneError ? (
-        <div className={styles.contextualEmpty} role="alert">
-          {sceneError === "SCENE_PROVIDER_UNAVAILABLE"
-            ? "Scene planning is not connected yet. Your show is saved. Ask the Studio owner to connect story generation, then try again."
-            : "We could not open or create your scene plan. Check your connection and try again. If a plan was saved, reload the Studio to continue it."}
-        </div>
+      {sceneErrorMessage ? (
+        <div className={styles.contextualEmpty} role="alert">{sceneErrorMessage}</div>
       ) : null}
       <EpisodeHero
         blueprint={blueprint}
@@ -224,7 +223,7 @@ export function SeriesStudio({
               </div>
               <StudioGuide blueprint={blueprint} scenes={activeScenes} pending={scenePending}
                 preview={seriesId === "demo" && !onDevelopScene} onScene={handleScene} onReview={() => document.getElementById("episode-board-title")?.focus()} />
-              {sceneError ? <div className={styles.contextualEmpty} role="alert">We could not open or create your scene plan. Try again. If a plan was saved, reload the Studio to continue it.</div> : null}
+              {sceneErrorMessage ? <div className={styles.contextualEmpty} role="alert">{sceneErrorMessage}</div> : null}
               <EpisodeBoard blueprint={blueprint} scenes={activeScenes} pending={scenePending}
                 preview={seriesId === "demo" && !onDevelopScene} onScene={handleScene} />
             </div>
