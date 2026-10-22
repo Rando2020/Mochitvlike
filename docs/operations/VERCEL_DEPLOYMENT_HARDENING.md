@@ -24,7 +24,7 @@ Keep Vercel Deployment Protection enabled. Give human testers appropriate Vercel
 
 ## Build and external release gates
 
-`vercel.json` runs `build:deployment`: typecheck, the full unit suite, then Next.js build. A failed unit check therefore prevents a successful Vercel build without depending on external Deployment Checks. The existing five cron entries are preserved. Disposable database verification and release approval remain separate gates.
+`vercel.json` runs `build:deployment`: typecheck, the full unit suite, then Next.js build. The cross-platform runner explicitly uses NODE_ENV=test for checks and NODE_ENV=production for the app build, even when Vercel supplies production mode. A failed unit check therefore prevents a successful Vercel build without depending on external Deployment Checks. The existing five cron entries are preserved. Disposable database verification and release approval remain separate gates.
 
 In GitHub, require CI, Cloud Smoke and the applicable database checks on main, require PR review, and disallow bypass/direct pushes. In Vercel, require the corresponding Deployment Checks before production domain assignment, or use a separately reviewed staged-production release process. Environment reviewers and branch restrictions must also be configured in GitHub Settings; a YAML `environment:` declaration alone does not create these protections.
 

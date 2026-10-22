@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cloud": "playwright test",
-    "build:deployment": "npm run typecheck && npm test -- --maxWorkers=2 && next build"
+    "build:deployment": "node scripts/build-deployment.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
