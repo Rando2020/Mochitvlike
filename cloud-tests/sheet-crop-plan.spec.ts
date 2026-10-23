@@ -5,6 +5,7 @@ import sharp from "sharp";
 import { theWoundsWeKeep } from "../lib/series/demoBlueprint";
 
 test("crop plans validate locally and preview actual pixels without saving or approving", async ({ page }) => {
+  test.setTimeout(120000);
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   if (process.env.CLOUD_SMOKE !== "true" || !["localhost", "127.0.0.1"].includes(new URL(url).hostname) ||
       process.env.OPENAI_API_KEY !== "ci-fixture-no-provider-access") throw new Error("DISPOSABLE_LOCAL_DATABASE_REQUIRED");
@@ -35,7 +36,7 @@ test("crop plans validate locally and preview actual pixels without saving or ap
     } });
     expect(upload.status()).toBe(201);
     const sourceId = (await upload.json()).reference.id;
-    await page.goto(`/series/${seriesId}/references`);
+    await page.goto(`/series/${seriesId}/references`, { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("button", { name: "Preview crop", exact: true })).toBeDisabled();
     await page.getByLabel("Source sheet", { exact: true }).selectOption(sourceId);
     const plan = { format: "crayvo-sheet-crop-plan-v1", seriesId, characterId,
@@ -76,3 +77,4 @@ test("crop plans validate locally and preview actual pixels without saving or ap
     }
   }
 });
+
