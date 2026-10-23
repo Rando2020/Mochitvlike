@@ -109,6 +109,38 @@ describe("guided creation",()=>{
     render(<GuidedShowCreation creatorId="owner" providerReady={false} series={[{id:"series",title:"My show",logline:"A mystery",status:"DRAFT",genres:["MYSTERY"],updatedAt:"now"}]} />);
     expect(screen.getByRole("button",{name:"Explore this show"})).toBeDisabled();expect(screen.getByRole("link",{name:/My show/})).toHaveAttribute("href","/series/series");
   });
+  it("lets a signed-in creator save an idea when paid AI development is paused", async () => {
+    const fetcher = vi.spyOn(globalThis, "fetch").mockImplementation(async (url, options) => {
+      expect(url).toBe("/api/series/starter");
+      const body = JSON.parse(String(options?.body));
+      expect(body.idea).toBe(idea);
+      return new Response(JSON.stringify({ kind: "STARTER_DRAFT", series: { id: body.creationId } }), { status: 201 });
+    });
+    render(<GuidedShowCreation creatorId="owner" providerReady={true} generationEnabled={false} />);
+    expect(screen.getByRole("button", { name: "Explore this show" })).toBeDisabled();
+    expect(screen.getByText(/AI story development is currently paused/)).toBeVisible();
+    fireEvent.change(screen.getByLabelText("Describe your show"), { target: { value: idea } });
+    fireEvent.click(screen.getByRole("button", { name: "Save my idea as a draft (no AI)" }));
+    await waitFor(() => expect(fetcher).toHaveBeenCalledOnce());
+    await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith(expect.stringMatching(/^\\/series\\/[a-f0-9-]{36}$/)));
+    expect(fetcher).not.toHaveBeenCalledWith("/api/series/generate", expect.anything());
+  });
+  it("retries an uncertain starter save with the identical creation ID", async () => {
+    const ids: string[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, options) => {
+      const id = JSON.parse(String(options?.body)).creationId;
+      ids.push(id);
+      if (ids.length === 1) return new Response("{}", { status: 503 });
+      return new Response(JSON.stringify({ kind: "STARTER_DRAFT", series: { id } }), { status: 201 });
+    });
+    render(<GuidedShowCreation creatorId="owner" providerReady={true} generationEnabled={false} />);
+    fireEvent.change(screen.getByLabelText("Describe your show"), { target: { value: idea } });
+    fireEvent.click(screen.getByRole("button", { name: "Save my idea as a draft (no AI)" }));
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByRole("button", { name: "Save my idea as a draft (no AI)" }));
+    await waitFor(() => expect(ids).toHaveLength(2));
+    expect(ids[0]).toBe(ids[1]);
+  });
   it("clears recovered state when the authenticated account changes",async()=>{
     vi.spyOn(globalThis,"fetch").mockResolvedValue(new Response(JSON.stringify(result)));
     const view=show();await generate();
