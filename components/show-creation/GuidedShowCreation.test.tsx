@@ -122,7 +122,7 @@ describe("guided creation",()=>{
     fireEvent.change(screen.getByLabelText("Describe your show"), { target: { value: idea } });
     fireEvent.click(screen.getByRole("button", { name: "Save my idea as a draft (no AI)" }));
     await waitFor(() => expect(fetcher).toHaveBeenCalledOnce());
-    await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith(expect.stringMatching(/^\\/series\\/[a-f0-9-]{36}$/)));
+    await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith(expect.stringMatching(new RegExp("^/series/[a-f0-9-]{36}$"))));
     expect(fetcher).not.toHaveBeenCalledWith("/api/series/generate", expect.anything());
   });
   it("retries an uncertain starter save with the identical creation ID", async () => {
