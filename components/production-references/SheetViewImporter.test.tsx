@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SheetViewImporter } from "./SheetViewImporter";
 import type { ProductionReferenceRecord } from "@/lib/production-references/types";
@@ -19,6 +19,25 @@ async function preview() {
   return screen.findByAltText("Proposed cropped character view");
 }
 describe("explicit sheet import", () => {
+  it.each(["source", "geometry", "preview"])("discards a pending plan after changing %s", async change => {
+    const { fetcher } = setup();
+    fireEvent.change(screen.getByLabelText("Source sheet"), { target: { value: "source" } });
+    let resolve!: (value: string) => void;
+    const file = new File(["{}"], "slow.json", { type: "application/json" });
+    Object.defineProperty(file, "text", { value: () => new Promise<string>(done => { resolve = done; }) });
+    fireEvent.change(screen.getByLabelText("Crop plan JSON"), { target: { files: [file] } });
+    if (change === "source") fireEvent.change(screen.getByLabelText("Source sheet"), { target: { value: "" } });
+    if (change === "geometry") fireEvent.change(screen.getByLabelText("Crop left"), { target: { value: "10" } });
+    if (change === "preview") fireEvent.click(screen.getByRole("button", { name: "Preview crop" }));
+    await act(async () => resolve(JSON.stringify({
+      format: "crayvo-sheet-crop-plan-v1", seriesId: TEST_SERIES_ID, characterId: "char",
+      source: { sha256: source.checksum, width: 853, height: 1280 },
+      views: [{ file: "front.png", label: "Stale suggestion", referenceRole: "FULL_BODY", crop: { left: 0, top: 0, width: 128, height: 256 } }]
+    })));
+    expect(screen.queryByLabelText("Crop plan view")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("View label")).toHaveValue("Front view");
+    expect(fetcher).toHaveBeenCalledTimes(change === "preview" ? 1 : 0);
+  });
   it("does no work on mount and requires source selection", () => {
     const { fetcher } = setup(); expect(fetcher).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Preview crop" })).toBeDisabled();

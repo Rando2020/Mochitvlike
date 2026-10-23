@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ProductionReferenceRecord } from "@/lib/production-references/types";
 import type { SheetViewRequest } from "@/lib/production-references/sheet-view-schema";
 import { checkSheetCropPlan, type SheetCropPlan } from "@/lib/production-references/sheet-crop-plan";
@@ -21,7 +21,12 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
   const [loaded, setLoaded] = useState(false), [inspected, setInspected] = useState(false);
   const [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(false), [message, setMessage] = useState("");
   const lock = useRef(false);
-  function invalidate() { setPreview(null); setLoaded(false); setInspected(false); setMessage(""); }
+  const planRead = useRef(0);
+  function invalidate() { planRead.current += 1; setPreview(null); setLoaded(false); setInspected(false); setMessage(""); }
+  useEffect(() => {
+    invalidate(); setCropPlan(null);
+    return () => { planRead.current += 1; };
+  }, [seriesId, characterId, source?.id, source?.checksum, source?.visualMetadata.width, source?.visualMetadata.height]);
   function choosePlanView(plan: SheetCropPlan, index: number) {
     invalidate();
     setPlanIndex(index);
@@ -34,9 +39,11 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
     setCropPlan(null);
     invalidate();
     if (!source || !file) return;
+    const read = planRead.current;
     try {
       if (file.size > 64 * 1024) throw new Error("CROP_PLAN_TOO_LARGE");
       const raw = JSON.parse(await file.text()) as unknown;
+      if (read !== planRead.current) return;
       const plan = checkSheetCropPlan(raw, {
         seriesId, characterId, checksum: source.checksum,
         width: source.visualMetadata.width, height: source.visualMetadata.height
@@ -45,12 +52,14 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
       choosePlanView(plan, 0);
       setMessage(`Loaded ${plan.views.length} crop suggestions. Each one requires a separate preview and explicit save; no references were uploaded.`);
     } catch (error) {
+      if (read !== planRead.current) return;
       setMessage(error instanceof Error && error.message.startsWith("CROP_PLAN_") ?
         error.message : "INVALID_CROP_PLAN");
     }
   }
   async function submit(action: "preview" | "save") {
     if (lock.current || !source || uncertain || (action === "save" && (!preview || !inspected || !loaded))) return;
+    planRead.current += 1;
     lock.current = true; setBusy(true); setMessage("");
     let saveMayHaveSucceeded = false;
     try {
