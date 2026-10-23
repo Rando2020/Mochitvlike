@@ -38,7 +38,7 @@ test("crop plans validate locally and preview actual pixels without saving or ap
     const sourceId = (await upload.json()).reference.id;
     await page.goto(`/series/${seriesId}/references`, { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("button", { name: "Preview crop", exact: true })).toBeDisabled();
-    await page.getByLabel("Source sheet", { exact: true }).selectOption(sourceId);
+    await page.getByRole("combobox", { name: "Source sheet", exact: true }).selectOption(sourceId);
     const plan = { format: "crayvo-sheet-crop-plan-v1", seriesId, characterId,
       source: { sha256, width: 256, height: 256 }, views: [
         { file: "front.png", label: "Fixture front", referenceRole: "FULL_BODY", crop: { left: 0, top: 0, width: 128, height: 128 } },
@@ -77,4 +77,3 @@ test("crop plans validate locally and preview actual pixels without saving or ap
     }
   }
 });
-
