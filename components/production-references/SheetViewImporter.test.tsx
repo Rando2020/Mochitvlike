@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SheetViewImporter } from "./SheetViewImporter";
 import type { ProductionReferenceRecord } from "@/lib/production-references/types";
+const TEST_SERIES_ID = "70bb0b5c-1ee1-4c0a-8e41-4a62bcf9c892";
 const source = { id: "source", characterId: "char", type: "CHARACTER", referenceRole: "OTHER", benchmarkOnly: false,
   status: "UPLOADED", assetUrl: "https://example.com/source.webp", checksum: "a".repeat(64), visualMetadata: { width: 853, height: 1280 } } as ProductionReferenceRecord;
 afterEach(() => vi.unstubAllGlobals());
@@ -9,7 +10,7 @@ function setup() {
   const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ previewUrl: "data:image/png;base64,AA==", visualRevision: "b".repeat(64) }) });
   vi.stubGlobal("fetch", fetcher);
   const saved = vi.fn(async () => {});
-  render(<SheetViewImporter seriesId="series" characterId="char" references={[source]} onSaved={saved} />);
+  render(<SheetViewImporter seriesId={TEST_SERIES_ID} characterId="char" references={[source]} onSaved={saved} />);
   return { fetcher, saved };
 }
 async function preview() {
@@ -21,7 +22,7 @@ describe("explicit sheet import", () => {
   it("does no work on mount and requires source selection", () => {
     const { fetcher } = setup(); expect(fetcher).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Preview crop" })).toBeDisabled();
-    expect(screen.getByRole("link", { name: "Review identity reference" })).toHaveAttribute("href", "/series/series/cast/char/reference-binding");
+    expect(screen.getByRole("link", { name: "Review identity reference" })).toHaveAttribute("href", `/series/${TEST_SERIES_ID}/cast/char/reference-binding`);
   });
   it("requires loaded preview and inspection, saves only for review", async () => {
     const { fetcher, saved } = setup(); const image = await preview();
@@ -51,7 +52,7 @@ describe("explicit sheet import", () => {
     fireEvent.change(screen.getByLabelText("Source sheet"), { target: { value: "source" } });
     const plan = {
       format: "crayvo-sheet-crop-plan-v1",
-      seriesId: "series", characterId: "char",
+      seriesId: TEST_SERIES_ID, characterId: "char",
       source: { sha256: "a".repeat(64), width: 853, height: 1280 },
       views: [
         { file: "front.png", label: "Front model", referenceRole: "FULL_BODY",
@@ -82,7 +83,7 @@ describe("explicit sheet import", () => {
   it("rejects another source's crop plan locally without a network call", async () => {
     const { fetcher } = setup();
     fireEvent.change(screen.getByLabelText("Source sheet"), { target: { value: "source" } });
-    const plan = { format: "crayvo-sheet-crop-plan-v1", seriesId: "series",
+    const plan = { format: "crayvo-sheet-crop-plan-v1", seriesId: TEST_SERIES_ID,
       characterId: "char", source: { sha256: "b".repeat(64), width: 853, height: 1280 },
       views: [{ file: "front.png", label: "Front", referenceRole: "FULL_BODY",
         crop: { left: 0, top: 0, width: 128, height: 256 } }] };
