@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import type { ProductionReferenceRecord } from "@/lib/production-references/types";
 import type { SheetViewRequest } from "@/lib/production-references/sheet-view-schema";
+import { checkSheetCropPlan, type SheetCropPlan } from "@/lib/production-references/sheet-crop-plan";
 import styles from "./ProductionReferenceStudio.module.css";
 
 export function SheetViewImporter({ seriesId, characterId, references, onSaved }: {
@@ -13,12 +14,41 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
   const source = sources.find(r => r.id === sourceId);
   const [crop, setCrop] = useState({ left: 0, top: 0, width: 128, height: 128 });
   const [label, setLabel] = useState("Front view");
+  const [cropPlan, setCropPlan] = useState<SheetCropPlan | null>(null);
+  const [planIndex, setPlanIndex] = useState(0);
   const [role, setRole] = useState<SheetViewRequest["referenceRole"]>("FULL_BODY");
   const [preview, setPreview] = useState<{ url: string; revision: string } | null>(null);
   const [loaded, setLoaded] = useState(false), [inspected, setInspected] = useState(false);
   const [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(false), [message, setMessage] = useState("");
   const lock = useRef(false);
   function invalidate() { setPreview(null); setLoaded(false); setInspected(false); setMessage(""); }
+  function choosePlanView(plan: SheetCropPlan, index: number) {
+    invalidate();
+    setPlanIndex(index);
+    const view = plan.views[index];
+    setLabel(view.label);
+    setRole(view.referenceRole);
+    setCrop({ ...view.crop });
+  }
+  async function loadCropPlan(file?: File) {
+    setCropPlan(null);
+    invalidate();
+    if (!source || !file) return;
+    try {
+      if (file.size > 64 * 1024) throw new Error("CROP_PLAN_TOO_LARGE");
+      const raw = JSON.parse(await file.text()) as unknown;
+      const plan = checkSheetCropPlan(raw, {
+        seriesId, characterId, checksum: source.checksum,
+        width: source.visualMetadata.width, height: source.visualMetadata.height
+      });
+      setCropPlan(plan);
+      choosePlanView(plan, 0);
+      setMessage(`Loaded ${plan.views.length} crop suggestions. Each one requires a separate preview and explicit save; no references were uploaded.`);
+    } catch (error) {
+      setMessage(error instanceof Error && error.message.startsWith("CROP_PLAN_") ?
+        error.message : "INVALID_CROP_PLAN");
+    }
+  }
   async function submit(action: "preview" | "save") {
     if (lock.current || !source || uncertain || (action === "save" && (!preview || !inspected || !loaded))) return;
     lock.current = true; setBusy(true); setMessage("");
@@ -56,9 +86,19 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
     <p>Upload the complete original below with role OTHER first. It stays unchanged. Select a rectangle in pixels, preview it, then explicitly save a separate view for review. Rights are inherited from the source.</p>
     <fieldset disabled={busy || uncertain} className={styles.form}>
       <legend>Choose a source and crop</legend>
-      <label>Source sheet<select value={sourceId} onChange={e => { invalidate(); setSourceId(e.target.value); }}>
+      <label>Source sheet<select value={sourceId} onChange={e => { invalidate(); setCropPlan(null); setSourceId(e.target.value); }}>
         <option value="">Select a saved source sheet</option>{sources.map(r => <option value={r.id} key={r.id}>Source {r.id.slice(0, 8)} · {r.visualMetadata.width}×{r.visualMetadata.height}</option>)}
       </select></label>
+      <label>Load crop plan (optional JSON)
+        <input aria-label="Crop plan JSON" type="file" accept=".json,application/json" disabled={!source}
+          onChange={e => { void loadCropPlan(e.target.files?.[0]); }} />
+      </label>
+      {cropPlan ? <label>Crop plan view
+        <select aria-label="Crop plan view" value={planIndex} onChange={e => choosePlanView(cropPlan, Number(e.target.value))}>
+          {cropPlan.views.map((view, index) => <option key={view.file} value={index}>{index + 1}. {view.label} · {view.referenceRole}</option>)}
+        </select>
+      </label> : null}
+      {cropPlan?.views[planIndex]?.note ? <p>{cropPlan.views[planIndex].note}</p> : null}
       <label>View label<input value={label} maxLength={80} onChange={e => { invalidate(); setLabel(e.target.value); }} /></label>
       <label>View role<select value={role} onChange={e => { invalidate(); setRole(e.target.value as typeof role); }}>
         {(["FULL_BODY", "PROFILE", "EXPRESSION", "COSTUME", "TURNAROUND"] as const).map(value => <option key={value}>{value}</option>)}
