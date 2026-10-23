@@ -41,9 +41,10 @@ const DraftSchema = z.object({
   generated: GeneratedSchema.nullable(), creationId: z.string().uuid(), savedId: z.string().uuid().nullable()
 });
 
-export function GuidedShowCreation({ creatorId, providerReady, series = [], connectionIssue = false }: {
+export function GuidedShowCreation({ creatorId, providerReady, generationEnabled = true, series = [], connectionIssue = false }: {
   creatorId: string | null;
   providerReady: boolean;
+  generationEnabled?: boolean;
   series?: SeriesSummary[];
   connectionIssue?: boolean;
 }) {
@@ -57,7 +58,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
   const [savedId, setSavedId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [hydratedKey, setHydratedKey] = useState<string | null | undefined>(undefined);
-  const [pending, setPending] = useState<"generate" | "save" | null>(null);
+  const [pending, setPending] = useState<"generate" | "save" | "starter" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [storageAvailable, setStorageAvailable] = useState(true);
   const busy = useRef(false);
@@ -94,7 +95,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
 
   async function explore(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy.current || !creatorId || !providerReady) return;
+    if (busy.current || !creatorId || !providerReady || !generationEnabled) return;
     const input = SeriesIdeaRequestSchema.safeParse({ idea, ...(hasCharacterDirection(protagonistDirection) ? { protagonistDirection } : {}), preferences: { episodeLengthSeconds: seconds, targetEpisodeCount: episodes } });
     if (!input.success) { setMessage("Describe your show in 3 to 5,000 characters and choose a supported episode format."); return; }
     busy.current = true; setPending("generate"); setMessage(null);
@@ -114,6 +115,41 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
       setCreationId(crypto.randomUUID()); setSavedId(null); setGenerated(result.data);
     } catch { setMessage("We could not develop a valid direction. Your idea is still here; check your connection and try again."); }
     finally { busy.current = false; setPending(null); }
+  }
+
+  async function saveStarterDraft() {
+    if (busy.current || !creatorId || !creationId || generated) return;
+    const parsed = SeriesIdeaRequestSchema.safeParse({
+      idea,
+      ...(hasCharacterDirection(protagonistDirection) ? { protagonistDirection } : {}),
+      preferences: { episodeLengthSeconds: seconds, targetEpisodeCount: episodes }
+    });
+    if (!parsed.success) {
+      setMessage("Describe your idea in 3 to 5,000 characters and choose a supported episode format.");
+      return;
+    }
+    busy.current = true; setPending("starter"); setMessage(null);
+    try {
+      const response = await fetch("/api/series/starter", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...parsed.data, creationId })
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          setMessage("Your session ended. Sign in again; your idea stays in this tab.");
+          return;
+        }
+        throw new Error("STARTER_SAVE_UNCONFIRMED");
+      }
+      const receipt = await response.json();
+      if (receipt.kind !== "STARTER_DRAFT" || receipt.series?.id !== creationId) throw new Error("INVALID_STARTER_RECEIPT");
+      setSavedId(creationId);
+      router.push(`/series/${creationId}`);
+    } catch {
+      setMessage("The draft save could not be confirmed. Your idea is still here. Retry without editing to recover the same show.");
+    } finally {
+      busy.current = false; setPending(null);
+    }
   }
 
   async function save() {
@@ -148,7 +184,7 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
       </header>
       <ol className={styles.steps} aria-label="Show creation steps"><li aria-current={!generated ? "step" : undefined}>1 · Your idea</li><li aria-current={generated && !savedId ? "step" : undefined}>2 · Story direction</li><li aria-current={savedId ? "step" : undefined}>3 · Saved Studio</li></ol>
       {connectionIssue ? <p className={styles.notice} role="alert">The Studio could not connect to your account or saved shows. Try reloading once the connection is available.</p> : null}
-      {!creatorId ? <p className={styles.notice}>Sign in to develop and save your show. <a href="/login">Open sign-in</a></p> : !providerReady ? <p className={styles.notice}>Show creation is not connected yet. You can continue an existing show below.</p> : null}
+      {!creatorId ? <p className={styles.notice}>Sign in to develop and save your show. <a href="/login">Open sign-in</a></p> : !generationEnabled ? <p className={styles.notice}>AI story development is currently paused. You can still save your own idea as a starter draft below, without generating or paying for AI.</p> : !providerReady ? <p className={styles.notice}>AI story development is not connected yet. You can still save a starter draft below.</p> : null}
       <section className={styles.workspace} aria-busy={pending !== null}>
         {blueprint ? <div>
           <span className={styles.eyebrow}>{savedId ? "Saved to your shows" : "Your starting direction · not saved yet"}</span>
@@ -171,11 +207,14 @@ export function GuidedShowCreation({ creatorId, providerReady, series = [], conn
           <p id="idea-help" className={styles.hint}>A character, a conflict, or a feeling. Up to 5,000 characters.</p>
           <CharacterDirectionControls value={protagonistDirection} onChange={setProtagonistDirection} disabled={pending !== null} />
           <details className={styles.options}><summary>Episode format · {seconds}s × {episodes} episodes</summary><div className={styles.formatGrid}><label>Episode length (seconds)<input type="number" min={30} max={120} step={1} value={seconds} disabled={pending !== null} onChange={e => setSeconds(Number(e.target.value))} required /></label><label>Season length (episodes)<input type="number" min={8} max={20} step={1} value={episodes} disabled={pending !== null} onChange={e => setEpisodes(Number(e.target.value))} required /></label></div></details>
-          <div className={styles.actions}><button type="submit" className={styles.primary} disabled={pending !== null || !loaded || hydratedKey !== key || !creatorId || !providerReady}>{pending === "generate" ? "Developing your direction…" : "Explore this show"}</button></div>
-          <p className={styles.hint}>You'll review the direction before saving your show.</p>
+          <div className={styles.actions}>
+            <button type="submit" className={styles.primary} disabled={pending !== null || !loaded || hydratedKey !== key || !creatorId || !providerReady || !generationEnabled}>{pending === "generate" ? "Developing your direction…" : "Explore this show with AI"}</button>
+            <button type="button" className={styles.secondary} onClick={() => void saveStarterDraft()} disabled={pending !== null || !loaded || hydratedKey !== key || !creatorId || !creationId || idea.trim().length < 3}>{pending === "starter" ? "Saving your starter draft…" : "Save my idea as a draft (no AI)"}</button>
+          </div>
+          <p className={styles.hint}>AI exploration requires an enabled provider. The no-AI option saves your exact idea and a clearly marked, unfinished structure with placeholder characters and beats. It does not invent story details.</p>
         </form>}
         {message ? <p className={styles.error} role="alert">{message}{message.startsWith("Your session ended.") ? <> <a href="/login">Sign-in page</a></> : null}</p> : null}
-        <p className={styles.hint} role="status">{pending === "generate" ? "Developing the story foundation. Keep this page open." : pending === "save" ? "Saving the reviewed story foundation." : storageAvailable && creatorId ? "Your draft stays in this browser tab until you close it." : "Draft recovery is unavailable here. Keep this page open to preserve your work."}</p>
+        <p className={styles.hint} role="status">{pending === "generate" ? "Developing the story foundation. Keep this page open." : pending === "save" ? "Saving the reviewed story foundation." : pending === "starter" ? "Saving a starter draft without AI." : storageAvailable && creatorId ? "Your draft stays in this browser tab until you close it." : "Draft recovery is unavailable here. Keep this page open to preserve your work."}</p>
       </section>
       {series.length ? <section className={styles.saved} aria-labelledby="saved-shows"><h2 id="saved-shows">Continue your shows</h2><div className={styles.savedGrid}>{series.filter(item => item.status !== "ARCHIVED").map(item => <a key={item.id} href={`/series/${item.id}`}><h3>{item.title}</h3><p>{item.logline}</p><span>Open Studio →</span></a>)}</div></section> : null}
     </main>
