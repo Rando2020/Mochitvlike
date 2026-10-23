@@ -18,5 +18,6 @@ export default async function CreateShowPage() {
     }
   } catch { connectionIssue = true; }
   const providerReady = Boolean(process.env.OPENAI_API_KEY && (process.env.OPENAI_SERIES_MODEL || process.env.OPENAI_SCENE_MODEL));
-  return <GuidedShowCreation creatorId={creatorId} providerReady={providerReady} series={series} connectionIssue={connectionIssue} />;
+  const generationEnabled = process.env.TEXT_GENERATION_ENABLED === "true";
+  return <GuidedShowCreation creatorId={creatorId} providerReady={providerReady} generationEnabled={generationEnabled} series={series} connectionIssue={connectionIssue} />;
 }
