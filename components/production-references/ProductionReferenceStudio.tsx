@@ -3,7 +3,7 @@ import {useMemo,useState} from "react";
 import type {SeriesBlueprint} from "@/lib/series/types";
 import type {CharacterPerformanceBible,ReferenceSheetSlot} from "@/lib/character-performance/types";
 import type {ProductionReferenceRecord,ReferenceProvenance} from "@/lib/production-references/types";
-import {getAbilityProductionReadiness,getCharacterProductionReadiness} from "@/lib/production-references/readiness";
+import {getAbilityProductionReadiness,getCharacterProductionReadiness,type CharacterBindingReadiness} from "@/lib/production-references/readiness";
 import styles from "./ProductionReferenceStudio.module.css";
 import {SheetViewImporter} from "./SheetViewImporter";
 import {readSheetViewLineage} from "@/lib/production-references/sheet-view-schema";
@@ -11,12 +11,12 @@ import {readSheetViewLineage} from "@/lib/production-references/sheet-view-schem
 const SLOTS:ReferenceSheetSlot[]=["ACTIVATION_POSE","WINDUP","RELEASE","IMPACT","AFTERMATH","VFX_ISOLATION","PALETTE","SHAPE_LANGUAGE","MOTION_ARROWS"];
 const defaultProvenance=(source:ReferenceProvenance["source"]):ReferenceProvenance=>({source,creatorNameOrId:"",licenseIdOrDescription:"",sourceUrlOrRecord:null,permissions:{productionUse:null,commercialUse:null,modelConditioning:null,redistribution:null},projectSpecific:null,notes:null});
 
-export function ProductionReferenceStudio({seriesId,blueprint,bibles,initialReferences}:{seriesId:string;blueprint:SeriesBlueprint;bibles:CharacterPerformanceBible[];initialReferences:ProductionReferenceRecord[]}){
+export function ProductionReferenceStudio({seriesId,blueprint,bibles,initialReferences,bindingStates={}}:{seriesId:string;blueprint:SeriesBlueprint;bibles:CharacterPerformanceBible[];initialReferences:ProductionReferenceRecord[];bindingStates?:Record<string,CharacterBindingReadiness>}){
  const [references,setReferences]=useState(initialReferences),[selectedCharacter,setSelectedCharacter]=useState(blueprint.cast[0]?.id??""),[busy,setBusy]=useState(false),[message,setMessage]=useState<string|null>(null);
  const member=blueprint.cast.find(c=>c.id===selectedCharacter)??blueprint.cast[0];
  const bible=bibles.find(b=>b.characterId===member?.id);
  const abilities=bible?.abilityKit??[];
- const characterReadiness=member?getCharacterProductionReadiness(member.id,references):"MISSING_PRIMARY_CHARACTER_REFERENCE";
+ const characterReadiness=member?getCharacterProductionReadiness(member.id,references,bindingStates[member.id]):"MISSING_PRIMARY_CHARACTER_REFERENCE";
  const refresh=async()=>{const r=await fetch(`/api/series/${seriesId}/production-references`,{cache:"no-store"});if(r.ok){const body=await r.json();setReferences(body.references);}};
  const upload=async(form:HTMLFormElement)=>{setBusy(true);setMessage(null);try{
   const data=new FormData(form),file=data.get("file");if(!(file instanceof File)||!file.size){setMessage("Choose an image first.");return;}
@@ -38,7 +38,7 @@ export function ProductionReferenceStudio({seriesId,blueprint,bibles,initialRefe
   <header className={styles.hero}><div><span>Production References</span><h1>{blueprint.identity.title}</h1><p>Approve visual identity and ability references before Production Frame rendering.</p></div><a href={`/series/${seriesId}`}>Back to Series Studio</a></header>
   {message?<p className={styles.message} role="status">{message}</p>:null}
   <div className={styles.layout}>
-   <aside className={styles.characters}><h2>Characters</h2>{blueprint.cast.map(c=><button key={c.id} className={c.id===member?.id?styles.active:""} onClick={()=>setSelectedCharacter(c.id)}><strong>{c.name}</strong><span>{getCharacterProductionReadiness(c.id,references).replaceAll("_"," ")}</span></button>)}</aside>
+   <aside className={styles.characters}><h2>Characters</h2>{blueprint.cast.map(c=><button key={c.id} className={c.id===member?.id?styles.active:""} onClick={()=>setSelectedCharacter(c.id)}><strong>{c.name}</strong><span>{getCharacterProductionReadiness(c.id,references,bindingStates[c.id]).replaceAll("_"," ")}</span></button>)}</aside>
    <section className={styles.content}>
     {member?<><div className={styles.sectionHead}><div><span>{member.role.replaceAll("_"," ")}</span><h2>{member.name}</h2><p>{member.visualConcept}</p></div><strong>{characterReadiness.replaceAll("_"," ")}</strong></div>
     <SheetViewImporter key={member.id} seriesId={seriesId} characterId={member.id} references={references} onSaved={refresh}/>
