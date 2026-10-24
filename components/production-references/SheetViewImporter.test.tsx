@@ -10,8 +10,8 @@ function setup() {
   const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ previewUrl: "data:image/png;base64,AA==", visualRevision: "b".repeat(64) }) });
   vi.stubGlobal("fetch", fetcher);
   const saved = vi.fn(async () => {});
-  render(<SheetViewImporter seriesId={TEST_SERIES_ID} characterId="char" references={[source]} onSaved={saved} />);
-  return { fetcher, saved };
+  const view = render(<SheetViewImporter seriesId={TEST_SERIES_ID} characterId="char" references={[source]} onSaved={saved} />);
+  return { fetcher, saved, ...view };
 }
 async function preview() {
   fireEvent.change(screen.getByLabelText("Source sheet"), { target: { value: "source" } });
@@ -37,6 +37,44 @@ describe("explicit sheet import", () => {
     expect(screen.queryByLabelText("Crop plan view")).not.toBeInTheDocument();
     expect(screen.getByLabelText("View label")).toHaveValue("Front view");
     expect(fetcher).toHaveBeenCalledTimes(change === "preview" ? 1 : 0);
+  });
+  it.each(["checksum", "version", "status", "removed"])("discards a pending preview when source %s changes", async change => {
+    const { fetcher, saved, rerender } = setup();
+    let resolve!: (value: unknown) => void;
+    fetcher.mockImplementationOnce(() => new Promise(done => { resolve = done; }));
+    fireEvent.change(screen.getByLabelText("Source sheet"), { target: { value: "source" } });
+    fireEvent.click(screen.getByRole("button", { name: "Preview crop" }));
+    const updated = { ...source,
+      ...(change === "checksum" ? { checksum: "c".repeat(64) } : {}),
+      ...(change === "version" ? { version: 2 } : {}),
+      ...(change === "status" ? { status: "APPROVED" as const } : {})
+    };
+    rerender(<SheetViewImporter seriesId={TEST_SERIES_ID} characterId="char"
+      references={change === "removed" ? [] : [updated]} onSaved={saved} />);
+    await act(async () => resolve({ ok: true, json: async () => ({
+      previewUrl: "data:image/png;base64,OLD=", visualRevision: "b".repeat(64)
+    }) }));
+    expect(screen.queryByAltText("Proposed cropped character view")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save view for review" })).not.toBeInTheDocument();
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(saved).not.toHaveBeenCalled();
+    if (change !== "removed") {
+      fireEvent.click(screen.getByRole("button", { name: "Preview crop" }));
+      const fresh = await screen.findByAltText("Proposed cropped character view");
+      expect(fresh).toHaveAttribute("src", "data:image/png;base64,AA==");
+      expect(screen.getByRole("button", { name: "Save view for review" })).toBeDisabled();
+    }
+  });
+  it("does not restore an obsolete preview error after source removal", async () => {
+    const { fetcher, saved, rerender } = setup();
+    let reject!: (reason: Error) => void;
+    fetcher.mockImplementationOnce(() => new Promise((_done, fail) => { reject = fail; }));
+    fireEvent.change(screen.getByLabelText("Source sheet"), { target: { value: "source" } });
+    fireEvent.click(screen.getByRole("button", { name: "Preview crop" }));
+    rerender(<SheetViewImporter seriesId={TEST_SERIES_ID} characterId="char" references={[]} onSaved={saved} />);
+    await act(async () => reject(new Error("Old request failed")));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Preview crop" })).toBeDisabled();
   });
   it("does no work on mount and requires source selection", () => {
     const { fetcher } = setup(); expect(fetcher).not.toHaveBeenCalled();
