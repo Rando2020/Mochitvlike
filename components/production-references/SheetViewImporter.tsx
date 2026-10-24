@@ -26,7 +26,7 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
   useEffect(() => {
     invalidate(); setCropPlan(null);
     return () => { planRead.current += 1; };
-  }, [seriesId, characterId, source?.id, source?.checksum, source?.visualMetadata.width, source?.visualMetadata.height]);
+  }, [seriesId, characterId, source?.id, source?.checksum, source?.version, source?.status, source?.visualMetadata.width, source?.visualMetadata.height]);
   function choosePlanView(plan: SheetCropPlan, index: number) {
     invalidate();
     setPlanIndex(index);
@@ -59,7 +59,7 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
   }
   async function submit(action: "preview" | "save") {
     if (lock.current || !source || uncertain || (action === "save" && (!preview || !inspected || !loaded))) return;
-    planRead.current += 1;
+    const requestRevision = ++planRead.current;
     lock.current = true; setBusy(true); setMessage("");
     let saveMayHaveSucceeded = false;
     try {
@@ -70,6 +70,9 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
       });
       const result = await response.json();
+      // A refreshed/removed source invalidates its in-flight preview as well as local crop plans.
+      // Never present old bytes for inspection against the new source metadata.
+      if (action === "preview" && requestRevision !== planRead.current) return;
       if (!response.ok) {
         // A server error can occur after insertion. Never retry a save automatically.
         if (action === "save" && response.status >= 500) throw new Error("Save uncertain.");
@@ -86,6 +89,7 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
         await onSaved();
       }
     } catch {
+      if (action === "preview" && requestRevision !== planRead.current) return;
       if (saveMayHaveSucceeded) { setUncertain(true); setMessage("Save response uncertain. Reload and inspect saved references before making another view. No automatic retry."); }
       else setMessage("Connection failed. Your source and crop settings remain available.");
     } finally { lock.current = false; setBusy(false); }
