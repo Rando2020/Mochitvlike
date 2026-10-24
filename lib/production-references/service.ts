@@ -48,9 +48,11 @@ export async function createProductionReference(input:{
 
 export async function approveProductionReference(input:{admin:SupabaseClient;userId:string;seriesId:string;referenceId:string;series:SeriesBlueprint;performanceBibles:CharacterPerformanceBible[]}){
  const record=await getProductionReferenceRecord(input.admin,input.userId,input.seriesId,input.referenceId);
+ if(record.status!=="REVIEW_REQUIRED")throw new Error("REFERENCE_NOT_PENDING_REVIEW");
  const problems=approvalProblems(record,input.series,input.performanceBibles);if(problems.length)throw new Error(problems[0]);
- const {error}=await input.admin.from("production_reference_assets").update({status:"APPROVED",approved:true,creator_approved:true}).eq("id",record.id).eq("creator_id",input.userId).eq("series_id",input.seriesId);
+ const {data,error}=await input.admin.from("production_reference_assets").update({status:"APPROVED",approved:true,creator_approved:true}).eq("id",record.id).eq("creator_id",input.userId).eq("series_id",input.seriesId).eq("status",record.status).eq("updated_at",record.updatedAt).select("id").maybeSingle();
  if(error)throw new Error(error.code==="23505"?"REFERENCE_APPROVAL_CONFLICT":"PRODUCTION_REFERENCE_APPROVAL_FAILED");
+ if(!data)throw new Error("REFERENCE_CHANGED_RELOAD");
  return{...record,status:"APPROVED" as const,approved:true,creatorApproved:true};
 }
 export async function transitionProductionReference(input:{admin:SupabaseClient;userId:string;seriesId:string;referenceId:string;status:"REJECTED"|"ARCHIVED"}){

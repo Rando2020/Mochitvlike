@@ -19,8 +19,11 @@ export async function PATCH(request:NextRequest,{params}:{params:Promise<{series
  const {seriesId,referenceId}=await params;const supabase=await createServerSupabaseClient();const {data:{user},error}=await supabase.auth.getUser();
  if(error||!user)return NextResponse.json({error:{code:"UNAUTHENTICATED"}},{status:401});
  try{
-  const series=await getSeries(supabase,user.id,seriesId),bibles=await getPerformanceBibles(supabase,user.id,seriesId,series.blueprint),admin=createAdminSupabaseClient();
+  const series=await getSeries(supabase,user.id,seriesId);
+  if(series.status==="ARCHIVED")return NextResponse.json({error:{code:"SERIES_ARCHIVED"}},{status:409});
+  const bibles=await getPerformanceBibles(supabase,user.id,seriesId,series.blueprint),admin=createAdminSupabaseClient();
   const current=await getProductionReferenceRecord(admin,user.id,seriesId,referenceId);if(current.status==="APPROVED")return NextResponse.json({error:{code:"APPROVED_REFERENCE_IMMUTABLE"}},{status:409});
+  if(!["UPLOADED","REVIEW_REQUIRED"].includes(current.status))return NextResponse.json({error:{code:"REFERENCE_CHANGED_RELOAD"}},{status:409});
   const parsed=ReferenceMetadataSchema.safeParse(await request.json());if(!parsed.success)return NextResponse.json({error:{code:"INVALID_REFERENCE_METADATA"}},{status:400});
   const m=parsed.data;
   const candidate={...current,type:m.type,source:m.source,characterId:m.characterId??null,abilityId:m.abilityId??null,locationId:m.locationId??null,propId:m.propId??null,referenceRole:m.referenceRole??null,abilitySlot:m.abilitySlot??null,modelCompatibility:m.modelCompatibility,provenance:m.provenance,visualMetadata:{...current.visualMetadata,notes:m.notes??null},benchmarkOnly:m.benchmarkOnly};
@@ -28,8 +31,9 @@ export async function PATCH(request:NextRequest,{params}:{params:Promise<{series
   const associationProblems=problems.filter(p=>!p.includes("PERMISSION")&&!["RIGHTS_RECORD_REQUIRED","CREATOR_RECORD_REQUIRED","SYNTHETIC_PROJECT_SPECIFIC_REQUIRED","BENCHMARK_REFERENCE_FORBIDDEN"].includes(p));
   if(associationProblems.length)return NextResponse.json({error:{code:associationProblems[0]}},{status:400});
   const status=problems.length?"UPLOADED":"REVIEW_REQUIRED";
-  const {error:updateError}=await admin.from("production_reference_assets").update({type:m.type,source:m.source,character_id:candidate.characterId,ability_id:candidate.abilityId,location_id:candidate.locationId,prop_id:candidate.propId,reference_role:candidate.referenceRole,ability_slot:candidate.abilitySlot,model_compatibility:candidate.modelCompatibility,provenance:candidate.provenance,notes:candidate.visualMetadata.notes,benchmark_only:candidate.benchmarkOnly,status,approved:false,creator_approved:false}).eq("id",referenceId).eq("creator_id",user.id).eq("series_id",seriesId);
+  const {data:updated,error:updateError}=await admin.from("production_reference_assets").update({type:m.type,source:m.source,character_id:candidate.characterId,ability_id:candidate.abilityId,location_id:candidate.locationId,prop_id:candidate.propId,reference_role:candidate.referenceRole,ability_slot:candidate.abilitySlot,model_compatibility:candidate.modelCompatibility,provenance:candidate.provenance,notes:candidate.visualMetadata.notes,benchmark_only:candidate.benchmarkOnly,status,approved:false,creator_approved:false}).eq("id",referenceId).eq("creator_id",user.id).eq("series_id",seriesId).eq("status",current.status).eq("updated_at",current.updatedAt).select("id").maybeSingle();
   if(updateError)throw new Error("PRODUCTION_REFERENCE_UPDATE_FAILED");
+  if(!updated)return NextResponse.json({error:{code:"REFERENCE_CHANGED_RELOAD"}},{status:409});
   return NextResponse.json({reference:{id:referenceId,status}});
  }catch(caught){const code=caught instanceof Error?caught.message:"PRODUCTION_REFERENCE_UPDATE_FAILED";return NextResponse.json({error:{code}},{status:code.includes("NOT_FOUND")?404:409});}
 }
