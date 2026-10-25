@@ -39,7 +39,7 @@ function exampleResponse(character: SeriesBlueprint["cast"][number]): string {
     " Their internal contradiction: " + character.internalConflict +
     " A scene could reveal this through a choice instead of exposition.";
 }
-export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: SeriesBlueprint; seriesId?: string }) {
+export function CreatorExperiencePreview({ blueprint, seriesId, savedBlueprintUpdatedAt }: { blueprint: SeriesBlueprint; seriesId?: string; savedBlueprintUpdatedAt?: string }) {
   const [view, setView] = useState<View>("create");
   const [storyWasOpened, setStoryWasOpened] = useState(false);
   const [storyHasUnsavedChanges, setStoryHasUnsavedChanges] = useState(false);
@@ -162,7 +162,7 @@ export function CreatorExperiencePreview({ blueprint, seriesId }: { blueprint: S
               </div>
             </section>
           )}
-          {seriesId && storyWasOpened && <div hidden={view !== "story"}><StorySeedsWorkspace seriesId={seriesId} blueprint={blueprint} onDirtyChange={setStoryHasUnsavedChanges}/></div>}
+          {seriesId && storyWasOpened && <div hidden={view !== "story"}><StorySeedsWorkspace seriesId={seriesId} blueprint={blueprint} savedBlueprintUpdatedAt={savedBlueprintUpdatedAt} onDirtyChange={setStoryHasUnsavedChanges}/></div>}
           {view === "story" && !seriesId && (
             <section className={styles.page}>
               <div className={styles.heading}><span className={styles.eyebrow}>STORY ARCHITECT · {blueprint.identity.title.toUpperCase()}</span><h1>Make every moment <em>mean something.</em></h1><p>Plant the seeds of your story. Lock the moments you can't imagine changing. The rest can grow around them.</p></div>

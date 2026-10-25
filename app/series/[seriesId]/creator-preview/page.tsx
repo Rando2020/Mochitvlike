@@ -16,7 +16,7 @@ export default async function OwnedCreatorPreviewPage({ params }: { params: Prom
   }
   try {
     const series = await getSeries(supabase, user.id, seriesId);
-    return <CreatorExperiencePreview blueprint={series.blueprint} seriesId={series.id} />;
+    return <CreatorExperiencePreview blueprint={series.blueprint} seriesId={series.id} savedBlueprintUpdatedAt={series.updatedAt} />;
   } catch (caught) {
     if (caught instanceof SeriesPersistenceError && (caught.code === "SERIES_NOT_FOUND" || caught.code === "CORRUPT_STORED_SERIES")) {
       notFound();

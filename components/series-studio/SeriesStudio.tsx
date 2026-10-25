@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { SceneSummary } from "@/lib/scenes/types";
 import type { CastMember, SeriesBlueprint, StudioFeatureType } from "@/lib/series/types";
 import { CanonPanel } from "./CanonPanel";
+import { StoryAssistantPanel } from "@/components/story-assistant/StoryAssistantPanel";
 import { CastDetailSheet } from "./CastDetailSheet";
 import { CastStrip } from "./CastStrip";
 import { ClarificationCard, type ClarificationChoice } from "./ClarificationCard";
@@ -34,6 +35,7 @@ const NAV_ITEMS: Array<{ id: StudioTab; label: string; icon: string }> = [
 export type SeriesStudioProps = {
   blueprint: SeriesBlueprint;
   seriesId: string;
+  savedBlueprintUpdatedAt?: string;
   sceneSummaries?: SceneSummary[];
   onDevelopScene?: (beatId: string) => void | Promise<void>;
   onOpenFeature?: (type: StudioFeatureType) => void;
@@ -59,6 +61,7 @@ function SeasonSnapshot({ blueprint }: { blueprint: SeriesBlueprint }) {
 export function SeriesStudio({
   blueprint,
   seriesId,
+  savedBlueprintUpdatedAt,
   sceneSummaries = [],
   onDevelopScene,
   onOpenFeature,
@@ -199,6 +202,7 @@ export function SeriesStudio({
                 <a className={styles.compactButton} href={"/series/" + encodeURIComponent(seriesId) + "/creator-preview"}>Open interactive UX preview ↗</a>
                 <p>Story seeds, character rehearsal, chibi direction, crossovers and production budgets. Only saved story plans are connected, when preview DB is configured.</p>
               </div>
+              {seriesId !== "demo" && <StoryAssistantPanel seriesId={seriesId} savedBlueprintUpdatedAt={savedBlueprintUpdatedAt}/>}
               <ClarificationCard blueprint={blueprint} onAnswer={onClarificationAnswer} />
               <div className={styles.dashboardGrid}>
                 <div className={styles.dashboardPrimary}>

@@ -38,6 +38,7 @@ export default async function SeriesPage({
       <SeriesStudio
         seriesId={series.id}
         blueprint={series.blueprint}
+        savedBlueprintUpdatedAt={series.updatedAt}
         sceneSummaries={scenes}
       />
     );
