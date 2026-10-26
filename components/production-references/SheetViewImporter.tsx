@@ -57,6 +57,27 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
         error.message : "INVALID_CROP_PLAN");
     }
   }
+  async function loadBundledVeyaPlan(){
+    if(!source || seriesId!=="70bb0b5c-1ee1-4c0a-8e41-4a62bcf9c892" || characterId!=="char_veya")return;
+    setCropPlan(null);invalidate();
+    const read=planRead.current;
+    try{
+      const response=await fetch("/character-packs/veya-crop-plan.json",{cache:"no-store"});
+      if(!response.ok)throw new Error("CROP_PLAN_NOT_AVAILABLE");
+      const text=await response.text();
+      if(text.length>64*1024)throw new Error("CROP_PLAN_TOO_LARGE");
+      const plan=checkSheetCropPlan(JSON.parse(text) as unknown,{
+        seriesId,characterId,checksum:source.checksum,
+        width:source.visualMetadata.width,height:source.visualMetadata.height
+      });
+      if(read!==planRead.current)return;
+      setCropPlan(plan);choosePlanView(plan,0);
+      setMessage(`Loaded ${plan.views.length} Veya crops. Each requires a separate preview and explicit save; nothing was approved.`);
+    }catch(error){
+      if(read!==planRead.current)return;
+      setMessage(error instanceof Error&&error.message.startsWith("CROP_PLAN_")?error.message:"INVALID_CROP_PLAN");
+    }
+  }
   async function submit(action: "preview" | "save") {
     if (lock.current || !source || uncertain || (action === "save" && (!preview || !inspected || !loaded))) return;
     const requestRevision = ++planRead.current;
@@ -102,6 +123,10 @@ export function SheetViewImporter({ seriesId, characterId, references, onSaved }
       <label>Source sheet<select value={sourceId} onChange={e => { invalidate(); setCropPlan(null); setSourceId(e.target.value); }}>
         <option value="">Select a saved source sheet</option>{sources.map(r => <option value={r.id} key={r.id}>Source {r.id.slice(0, 8)} · {r.visualMetadata.width}×{r.visualMetadata.height}</option>)}
       </select></label>
+      {seriesId==="70bb0b5c-1ee1-4c0a-8e41-4a62bcf9c892"&&characterId==="char_veya"?
+        <button type="button" disabled={!source} onClick={()=>void loadBundledVeyaPlan()}>
+          Load Veya's built-in 20-view crop plan
+        </button>:null}
       <label>Load crop plan (optional JSON)
         <input aria-label="Crop plan JSON" type="file" accept=".json,application/json" disabled={!source}
           onChange={e => { void loadCropPlan(e.target.files?.[0]); }} />
