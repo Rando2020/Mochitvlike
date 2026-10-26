@@ -32,7 +32,7 @@ beforeEach(()=>{
   vi.mocked(getSeries).mockResolvedValue({id:VEYA_SERIES_ID,blueprint:show} as never);
   vi.mocked(listProductionReferenceRecords).mockResolvedValue([]);
   vi.mocked(fetchPinnedVeyaSource).mockResolvedValue(new Uint8Array([137,80,78,71]));
-  vi.mocked(createProductionReference).mockResolvedValue({id:"ref1",status:"UPLOADED",checksum:VEYA_SOURCE_SHA256,width:1448,height:1086,mimeType:"image/png"});
+  vi.mocked(createProductionReference).mockResolvedValue({id:"33333333-3333-4333-8333-333333333333",status:"UPLOADED",checksum:VEYA_SOURCE_SHA256,width:1448,height:1086,mimeType:"image/png"});
 });
 describe("pinned Veya source import",()=>{
   it("creates an owner-scoped synthetic OTHER reference with rights unknown",async()=>{
