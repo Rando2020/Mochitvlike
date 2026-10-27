@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SeriesBlueprint } from "@/lib/series/types";
+import { StoryAssistantPanel } from "@/components/story-assistant/StoryAssistantPanel";
 import { lockedSeedChanges, type StoryPlan, type StoryPlanSaveInput, type StorySeed } from "@/lib/story-seeds/schema";
 import base from "./CreatorExperiencePreview.module.css";
 import styles from "./StorySeedsWorkspace.module.css";
@@ -19,7 +20,13 @@ function seedFrom(
   return { id: crypto.randomUUID(), title: title.trim(), placement, type, characterId, locked,
     setup: "", consequence: "", payoff: "" };
 }
-export function StorySeedsWorkspace({ seriesId, blueprint, onDirtyChange }: { seriesId: string; blueprint: SeriesBlueprint; onDirtyChange?: (dirty: boolean) => void }) {
+type StorySeedsWorkspaceProps = { seriesId: string; blueprint: SeriesBlueprint; savedBlueprintUpdatedAt?: string; onDirtyChange?: (dirty: boolean) => void };
+
+export function StorySeedsWorkspace(props: StorySeedsWorkspaceProps) {
+  return <StorySeedsSession key={props.seriesId} {...props}/>;
+}
+
+function StorySeedsSession({ seriesId, blueprint, savedBlueprintUpdatedAt, onDirtyChange }: StorySeedsWorkspaceProps) {
   const [saved, setSaved] = useState<StoryPlan | null>(null);
   const [draft, setDraft] = useState<StorySeed[]>([]);
   const [advanced, setAdvanced] = useState(false);
@@ -230,6 +237,7 @@ export function StorySeedsWorkspace({ seriesId, blueprint, onDirtyChange }: { se
           <button type="button" aria-pressed={advanced} className={advanced ? styles.active : ""} onClick={() => setAdvanced(true)}>Advanced</button>
         </div>
       </div>
+      <StoryAssistantPanel seriesId={seriesId} savedBlueprintUpdatedAt={savedBlueprintUpdatedAt} savedSeedRevision={saved.revision} hasUnsavedChanges={changed}/>
       <div className={styles.workspace}>
         <div className={styles.editor}>
           <span className={base.eyebrow}>NEW STORY SEED</span>
@@ -272,7 +280,7 @@ export function StorySeedsWorkspace({ seriesId, blueprint, onDirtyChange }: { se
           <p>Think like a showrunner: events matter because of what they force your characters to become.</p>
           <div className={styles.note}>{hint}</div>
           <button type="button" onClick={() => setWritingHint((v) => v + 1)}>Another writing prompt ↗</button>
-          <p className={styles.disclaimer}>Curated writing prompts only. Live AI story chat is not enabled.</p>
+          <p className={styles.disclaimer}>Curated writing prompts only. Check live availability in the storytelling assistant above.</p>
         </aside>
       </div>
       {!draft.length && <div className={styles.empty}>
@@ -323,7 +331,7 @@ export function StorySeedsWorkspace({ seriesId, blueprint, onDirtyChange }: { se
         </div>
         {error && <p className={styles.error} role="alert">{error}</p>}
         {notice && <p className={styles.success} role="status">{notice}</p>}
-        <small>Only the signed-in creator can read or save this planning data. No AI generation or production jobs run here.</small>
+        <small>Only the signed-in creator can read or save this planning data. Saving the plan does not run AI generation or production jobs.</small>
       </div>
     </section>
   );
