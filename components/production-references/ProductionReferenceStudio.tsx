@@ -33,6 +33,20 @@ export function ProductionReferenceStudio({seriesId,blueprint,bibles,initialRefe
   const response=await fetch(`/api/series/${seriesId}/production-references`,{method:"POST",body});const json=await response.json().catch(()=>null);
   if(!response.ok){setMessage(json?.error?.code??"Upload failed.");return;}setMessage("Reference stored for review. Unattested rights remain undecided and block production approval.");form.reset();await refresh();
  }finally{setBusy(false);}};
+ const importVeyaFromRepo=async()=>{
+  if(busy||seriesId!=="70bb0b5c-1ee1-4c0a-8e41-4a62bcf9c892"||member?.id!=="char_veya")return;
+  setBusy(true);setMessage(null);
+  try{
+    const response=await fetch(`/api/series/${seriesId}/production-references/import-veya`,{method:"POST"});
+    const result=await response.json().catch(()=>null);
+    if(!response.ok){setMessage(result?.error?.code??"Source import could not be confirmed. Reload references before retrying.");return;}
+    await refresh();
+    setMessage(result.alreadyExists?
+      "The exact original Veya source is already registered. No duplicate was created.":
+      "Original Veya source saved for review with all rights unconfirmed. Choose it in the crop importer below.");
+  }catch{setMessage("Import response uncertain. Refresh and inspect references before trying again.");}
+  finally{setBusy(false);}
+ };
  const act=async(id:string,action:"approve"|"reject"|"archive")=>{setBusy(true);setMessage(null);try{const r=await fetch(`/api/series/${seriesId}/production-references/${id}/${action}`,{method:"POST"});const b=await r.json().catch(()=>null);setMessage(r.ok?action==="approve"?"Reference approved for production.":"Reference updated.":b?.error?.code??"Reference update failed.");if(r.ok)await refresh();}finally{setBusy(false);}};
  const characterRefs=useMemo(()=>references.filter(r=>r.characterId===member?.id),[references,member?.id]);
  return <main className={styles.root}>
@@ -42,6 +56,12 @@ export function ProductionReferenceStudio({seriesId,blueprint,bibles,initialRefe
    <aside className={styles.characters}><h2>Characters</h2>{blueprint.cast.map(c=><button key={c.id} className={c.id===member?.id?styles.active:""} onClick={()=>setSelectedCharacter(c.id)}><strong>{c.name}</strong><span>{getCharacterProductionReadiness(c.id,references,bindingStates[c.id]).replaceAll("_"," ")}</span></button>)}</aside>
    <section className={styles.content}>
     {member?<><div className={styles.sectionHead}><div><span>{member.role.replaceAll("_"," ")}</span><h2>{member.name}</h2><p>{member.visualConcept}</p></div><strong>{characterReadiness.replaceAll("_"," ")}</strong></div>
+    {seriesId==="70bb0b5c-1ee1-4c0a-8e41-4a62bcf9c892"&&member.id==="char_veya"?
+      <section aria-label="Veya source from GitHub">
+        <h3>Import Veya's verified source sheet</h3>
+        <p>Import the exact original image already committed to GitHub. This saves a synthetic OTHER reference for review only. Rights remain unknown, no approval or model generation occurs.</p>
+        <button type="button" disabled={busy} onClick={()=>void importVeyaFromRepo()}>Import Veya source for review</button>
+      </section>:null}
     <SheetViewImporter key={member.id} seriesId={seriesId} characterId={member.id} references={references} onSaved={refresh}/>
     <form className={styles.form} onSubmit={e=>{e.preventDefault();void upload(e.currentTarget);}}>
       <input type="hidden" name="type" value="CHARACTER"/><label>Identity image<input name="file" type="file" accept="image/png,image/jpeg,image/webp" required/></label>

@@ -1,0 +1,232 @@
+{
+  "format": "crayvo-sheet-crop-plan-v1",
+  "seriesId": "70bb0b5c-1ee1-4c0a-8e41-4a62bcf9c892",
+  "characterId": "char_veya",
+  "source": {
+    "sha256": "561bb24474d7aeecb2bae4ff0193f81f1f7e6218c9cb242306db65723612111b",
+    "width": 1448,
+    "height": 1086
+  },
+  "views": [
+    {
+      "file": "assets/01_front_full_body.png",
+      "label": "Front full body",
+      "referenceRole": "FULL_BODY",
+      "crop": {
+        "left": 394,
+        "top": 40,
+        "width": 133,
+        "height": 407
+      }
+    },
+    {
+      "file": "assets/02_three_quarter_full_body.png",
+      "label": "Three-quarter full body",
+      "referenceRole": "FULL_BODY",
+      "crop": {
+        "left": 537,
+        "top": 40,
+        "width": 128,
+        "height": 407
+      }
+    },
+    {
+      "file": "assets/03_side_profile_body.png",
+      "label": "Side silhouette and profile",
+      "referenceRole": "PROFILE",
+      "crop": {
+        "left": 677,
+        "top": 40,
+        "width": 118,
+        "height": 407
+      }
+    },
+    {
+      "file": "assets/04_back_full_body.png",
+      "label": "Back view",
+      "referenceRole": "TURNAROUND",
+      "crop": {
+        "left": 806,
+        "top": 40,
+        "width": 121,
+        "height": 407
+      }
+    },
+    {
+      "file": "assets/05_face_closeup.png",
+      "label": "Face and amber interface eye",
+      "referenceRole": "EXPRESSION",
+      "crop": {
+        "left": 946,
+        "top": 39,
+        "width": 329,
+        "height": 211
+      }
+    },
+    {
+      "file": "assets/06_fractured_halo.png",
+      "label": "Fractured left-ear halo",
+      "referenceRole": "COSTUME",
+      "crop": {
+        "left": 1300,
+        "top": 57,
+        "width": 95,
+        "height": 135
+      }
+    },
+    {
+      "file": "assets/07_wrist_circuitry.png",
+      "label": "Right wrist circuitry",
+      "referenceRole": "COSTUME",
+      "crop": {
+        "left": 946,
+        "top": 287,
+        "width": 225,
+        "height": 171
+      }
+    },
+    {
+      "file": "assets/08_costume_detail.png",
+      "label": "Coat hardware and embroidery",
+      "referenceRole": "COSTUME",
+      "crop": {
+        "left": 1187,
+        "top": 285,
+        "width": 210,
+        "height": 172
+      }
+    },
+    {
+      "file": "assets/09_expression_neutral.png",
+      "label": "Neutral expression",
+      "referenceRole": "EXPRESSION",
+      "crop": {
+        "left": 395,
+        "top": 515,
+        "width": 111,
+        "height": 129
+      }
+    },
+    {
+      "file": "assets/10_expression_focused.png",
+      "label": "Focused expression",
+      "referenceRole": "EXPRESSION",
+      "crop": {
+        "left": 514,
+        "top": 515,
+        "width": 113,
+        "height": 129
+      }
+    },
+    {
+      "file": "assets/11_expression_skeptical.png",
+      "label": "Skeptical expression",
+      "referenceRole": "EXPRESSION",
+      "crop": {
+        "left": 637,
+        "top": 515,
+        "width": 110,
+        "height": 129
+      }
+    },
+    {
+      "file": "assets/12_expression_soft_smile.png",
+      "label": "Soft smile",
+      "referenceRole": "EXPRESSION",
+      "crop": {
+        "left": 758,
+        "top": 515,
+        "width": 124,
+        "height": 129
+      }
+    },
+    {
+      "file": "assets/13_expression_worried.png",
+      "label": "Worried expression",
+      "referenceRole": "EXPRESSION",
+      "crop": {
+        "left": 889,
+        "top": 515,
+        "width": 126,
+        "height": 129
+      }
+    },
+    {
+      "file": "assets/14_expression_determined.png",
+      "label": "Determined expression",
+      "referenceRole": "EXPRESSION",
+      "crop": {
+        "left": 1022,
+        "top": 515,
+        "width": 131,
+        "height": 129
+      }
+    },
+    {
+      "file": "assets/15_expression_hurt.png",
+      "label": "Hurt expression",
+      "referenceRole": "EXPRESSION",
+      "crop": {
+        "left": 1160,
+        "top": 515,
+        "width": 129,
+        "height": 129
+      }
+    },
+    {
+      "file": "assets/16_expression_intense.png",
+      "label": "Intense expression",
+      "referenceRole": "EXPRESSION",
+      "crop": {
+        "left": 1296,
+        "top": 515,
+        "width": 102,
+        "height": 129
+      }
+    },
+    {
+      "file": "assets/17_neutral_standing.png",
+      "label": "Neutral standing pose",
+      "referenceRole": "FULL_BODY",
+      "crop": {
+        "left": 388,
+        "top": 687,
+        "width": 186,
+        "height": 304
+      }
+    },
+    {
+      "file": "assets/18_investigative_pose.png",
+      "label": "Investigative pose",
+      "referenceRole": "FULL_BODY",
+      "crop": {
+        "left": 580,
+        "top": 687,
+        "width": 221,
+        "height": 304
+      }
+    },
+    {
+      "file": "assets/19_resonance_attunement.png",
+      "label": "Resonance attunement key pose",
+      "referenceRole": "FULL_BODY",
+      "crop": {
+        "left": 807,
+        "top": 686,
+        "width": 241,
+        "height": 305
+      }
+    },
+    {
+      "file": "assets/20_color_palette.png",
+      "label": "Palette swatches",
+      "referenceRole": "COSTUME",
+      "crop": {
+        "left": 1059,
+        "top": 686,
+        "width": 339,
+        "height": 126
+      }
+    }
+  ]
+}
