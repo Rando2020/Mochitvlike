@@ -1,0 +1,21 @@
+test_changed_source_after_validation_is_rejected (test_adversarial.ReviewAdversarial.test_changed_source_after_validation_is_rejected) ... ok
+test_indirect_media_is_rejected (test_adversarial.ReviewAdversarial.test_indirect_media_is_rejected) ... ok
+test_manifest_receipt_uses_immutable_snapshot (test_adversarial.ReviewAdversarial.test_manifest_receipt_uses_immutable_snapshot) ... ok
+test_bad_duration (test_assemble_local_proof.AssemblyTests.test_bad_duration) ... ok
+test_changed_pixels (test_assemble_local_proof.AssemblyTests.test_changed_pixels) ... ok
+test_duplicate_ids (test_assemble_local_proof.AssemblyTests.test_duplicate_ids) ... ok
+test_escape_path (test_assemble_local_proof.AssemblyTests.test_escape_path) ... ok
+test_explicit_soundtrack_padding (test_assemble_local_proof.AssemblyTests.test_explicit_soundtrack_padding) ... ok
+test_external_url (test_assemble_local_proof.AssemblyTests.test_external_url) ... ok
+test_fixture_requires_flag (test_assemble_local_proof.AssemblyTests.test_fixture_requires_flag) ... ok
+test_frame_exact_export_and_repeat_denial (test_assemble_local_proof.AssemblyTests.test_frame_exact_export_and_repeat_denial) ... ok
+test_missing_real_approval (test_assemble_local_proof.AssemblyTests.test_missing_real_approval) ... ok
+test_real_cannot_use_fixture_bypass (test_assemble_local_proof.AssemblyTests.test_real_cannot_use_fixture_bypass) ... ok
+test_rejected_take (test_assemble_local_proof.AssemblyTests.test_rejected_take) ... ok
+test_soundtrack_needs_rights (test_assemble_local_proof.AssemblyTests.test_soundtrack_needs_rights) ... ok
+test_validate_fixture (test_assemble_local_proof.AssemblyTests.test_validate_fixture) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 6.492s
+
+OK
